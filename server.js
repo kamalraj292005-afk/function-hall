@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, 'public', 'images', 'uploads');
 const logger = require('./middleware/logger');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const { initializeDatabase } = require('./database/init');
@@ -42,6 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve static frontend assets
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/images/uploads', express.static(uploadDir));
 
 // API Routes
 app.use('/api/auth', require('./routes/authRoutes'));

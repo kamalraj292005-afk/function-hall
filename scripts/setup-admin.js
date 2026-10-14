@@ -21,13 +21,19 @@ async function setup() {
 
   // Read credentials from env or CLI args
   const args = process.argv.slice(2);
+  const providedAdminPassword = args[1] || process.env.INITIAL_ADMIN_PASSWORD;
+  const providedOwnerPassword = process.env.INITIAL_OWNER_PASSWORD;
+  if (process.env.NODE_ENV === 'production' && (!providedAdminPassword || !providedOwnerPassword)) {
+    throw new Error('Set INITIAL_ADMIN_PASSWORD and INITIAL_OWNER_PASSWORD before running setup in production.');
+  }
+
   const adminEmail = args[0] || process.env.INITIAL_ADMIN_EMAIL || 'admin@palanimurugan.com';
-  const adminPassword = args[1] || process.env.INITIAL_ADMIN_PASSWORD || 'Admin@Palani2026';
+  const adminPassword = providedAdminPassword || 'Admin@Palani2026';
   const adminMobile = args[2] || process.env.INITIAL_ADMIN_MOBILE || '9655609405';
   const adminName = args[3] || process.env.INITIAL_ADMIN_NAME || 'Palani Murugan Administrator';
 
   const ownerEmail = process.env.INITIAL_OWNER_EMAIL || 'owner@palanimurugan.com';
-  const ownerPassword = process.env.INITIAL_OWNER_PASSWORD || 'Owner@Palani2026';
+  const ownerPassword = providedOwnerPassword || 'Owner@Palani2026';
   const ownerMobile = process.env.INITIAL_OWNER_MOBILE || '9655609405';
   const ownerName = process.env.INITIAL_OWNER_NAME || 'Palani Murugan Owner';
 
@@ -68,9 +74,9 @@ async function setup() {
   }
 
   console.log('\n--- Setup Summary ---');
-  console.log(`Admin Login:  ${adminEmail}  /  ${adminPassword}`);
-  console.log(`Owner Login:  ${ownerEmail}  /  ${ownerPassword}`);
-  console.log('\nSecurity Note: You may change these passwords after logging in or configure INITIAL_ADMIN_PASSWORD in your .env file.');
+  console.log(`Admin account created or updated: ${adminEmail}`);
+  console.log(`Owner account created or updated: ${ownerEmail}`);
+  console.log('\nPasswords were not printed. Retrieve them from your secure environment configuration.');
   process.exit(0);
 }
 

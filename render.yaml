@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: palani-murugan-function-hall
+    runtime: node
+    plan: 0.5c-512mb
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/config
+    initialDeployHook: npm run admin:setup
+    disk:
+      name: function-hall-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DB_PATH
+        value: /var/data/function_hall.db
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      - key: JWT_SECRET
+        generateValue: true
+      - key: INITIAL_ADMIN_EMAIL
+        value: admin@palanimurugan.com
+      - key: INITIAL_ADMIN_PASSWORD
+        sync: false
+      - key: INITIAL_OWNER_EMAIL
+        value: owner@palanimurugan.com
+      - key: INITIAL_OWNER_PASSWORD
+        sync: false

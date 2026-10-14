@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const DB_PATH = process.env.NODE_ENV === 'test'
   ? path.join(__dirname, '..', 'function_hall_test.db')
-  : path.join(__dirname, '..', 'function_hall.db');
+  : (process.env.DB_PATH || path.join(__dirname, '..', 'function_hall.db'));
 
 let rawDb = null;
 let wrappedDb = null;

@@ -7,7 +7,7 @@ const ownerController = require('../controllers/ownerController');
 const { authenticate, authorize } = require('../middleware/auth');
 
 // Multer storage for hall image uploads
-const uploadDir = path.join(__dirname, '..', 'public', 'images', 'uploads');
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '..', 'public', 'images', 'uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }

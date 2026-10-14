@@ -324,7 +324,8 @@ exports.deleteImage = (req, res) => {
 
     // Delete file from disk if it was an uploaded file
     if (image.file_path.startsWith('/images/uploads/')) {
-      const fullPath = path.join(__dirname, '..', 'public', image.file_path);
+      const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '..', 'public', 'images', 'uploads');
+      const fullPath = path.join(uploadDir, path.basename(image.filename));
       if (fs.existsSync(fullPath)) {
         try { fs.unlinkSync(fullPath); } catch (e) { logger.warn('Failed to delete file from disk', { path: fullPath }); }
       }
