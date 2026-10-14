@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking & Payment | Palani Murugan Function Hall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="container">
+      <div>📍 Vallavari, Aranthangi to Peravurani Road | Near Ayanar Kovil Temple</div>
+      <div>Direct Call: <a href="tel:9655609405">9655609405</a></div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand-wrapper">
+        <div class="brand-logo-emblem">PM</div>
+        <div class="brand-title">
+          Palani Murugan
+          <small>பழனி முருகன் திருமண மஹால்</small>
+        </div>
+      </a>
+      <div class="nav-actions" id="nav-auth-actions"></div>
+    </div>
+  </nav>
+
+  <div class="container section">
+    <div class="section-header">
+      <span class="section-tag">Booking & Payment Confirmation</span>
+      <h1 class="section-title">Palani Murugan Function Hall Reservation</h1>
+      <div class="tamil-sub">மண்டப முன்பதிவு மற்றும் கட்டணம்</div>
+    </div>
+
+    <!-- Booking View Container -->
+    <div id="booking-container" style="max-width: 860px; margin: 0 auto;">
+      <!-- Loaded dynamically: either new booking form or existing booking details & payment -->
+      <div id="booking-loading" style="text-align:center; padding: 40px;">
+        <p style="font-size: 1.2rem; color: var(--primary-maroon);">Loading booking details...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual UPI Modal -->
+  <div class="modal-backdrop" id="manual-upi-modal">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div>
+          <h3 style="color:white; margin:0; font-size:1.3rem;">Pay via UPI (யுபிஐ மூலம் செலுத்துக)</h3>
+          <small style="color:var(--accent-gold-light); font-size:0.8rem;">Palani Murugan Function Hall</small>
+        </div>
+        <button type="button" class="modal-close" onclick="closeManualUpiModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+
+        <!-- Amount Banner -->
+        <div style="background: linear-gradient(135deg, #701325, #4e0b18); color: white; padding: 14px; border-radius: 10px; margin-bottom: 18px; border: 1px solid var(--accent-gold);">
+          <small style="text-transform: uppercase; letter-spacing: 1px; color: #f2dbb3;">Amount to Pay (செலுத்த வேண்டிய தொகை)</small>
+          <div id="manual-upi-amount-display" style="font-size: 2rem; font-weight: bold; font-family: var(--font-heading); color: #fff; margin-top: 4px;">₹5,000</div>
+        </div>
+
+        <!-- Dynamic QR Code Card -->
+        <div style="background: white; border: 2px solid var(--accent-gold); border-radius: 12px; padding: 16px; margin-bottom: 18px; box-shadow: var(--shadow-sm); display: inline-block;">
+          <div style="font-weight: 700; color: var(--primary-maroon); margin-bottom: 8px; font-size: 0.95rem;">
+            📱 Scan with Any UPI App to Pay
+          </div>
+          <div style="display: flex; justify-content: center; align-items: center; min-height: 200px; background: #fff; padding: 4px;">
+            <img id="upi-qr-image" src="" alt="UPI Payment QR Code" style="width: 200px; height: 200px; display: block; border-radius: 6px;">
+          </div>
+          <div style="margin-top: 8px; display: flex; gap: 6px; justify-content: center; align-items: center; font-size: 0.78rem; color: var(--text-muted);">
+            <span style="background: #eef2ff; color: #3730a3; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Google Pay</span>
+            <span style="background: #f3e8ff; color: #6b21a8; padding: 2px 6px; border-radius: 4px; font-weight: 600;">PhonePe</span>
+            <span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px; font-weight: 600;">Paytm</span>
+            <span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px; font-weight: 600;">BHIM</span>
+          </div>
+        </div>
+
+        <!-- Copyable UPI ID Box -->
+        <div class="upi-box" style="margin-bottom: 16px; text-align: left;">
+          <div>
+            <small style="color:var(--text-muted); display:block; font-size:0.8rem;">Official UPI ID (யுபிஐ ஐடி):</small>
+            <span class="upi-id-text" id="modal-upi-id" style="font-size: 1.15rem;">rajm19407@okaxis</span>
+          </div>
+          <button type="button" class="btn btn-gold btn-sm" id="btn-copy-modal-upi" onclick="copyUpiId()">
+            <span id="copy-text">Copy UPI</span>
+          </button>
+        </div>
+
+        <!-- Direct UPI App Button (for mobile phones) -->
+        <div style="margin-bottom: 18px;" id="mobile-intent-wrapper">
+          <a id="upi-intent-link" href="#" class="btn btn-outline" style="width:100%;">
+            <span>📲 Tap to Pay directly in UPI App (Mobile Only)</span>
+          </a>
+        </div>
+
+        <!-- UTR / Reference Form -->
+        <div style="text-align: left; background: #faf6f0; border: 1px solid var(--border-light); border-radius: 10px; padding: 16px;">
+          <h4 style="color: var(--primary-maroon); margin-bottom: 6px; font-size: 1rem;">
+            Step 2: Submit Payment Reference
+          </h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+            After completing payment in your UPI app, enter the 12-digit UTR or Transaction Reference number below:
+          </p>
+
+          <form id="manual-upi-submit-form">
+            <div class="form-group" style="margin-bottom: 12px;">
+              <input type="text" class="form-input" id="upi-ref-input" required placeholder="Enter 12-digit UPI Ref / UTR No" style="font-family: monospace; font-size: 1.05rem;">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;" id="btn-submit-manual-upi">
+              <span>Submit Payment Proof (₹5,000)</span>
+              <span class="btn-ta">கட்டண ஆதாரத்தை சமர்ப்பிக்க</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Gateway Choice Modal for Test Mode / UPI Options -->
+  <div class="modal-backdrop" id="gateway-choice-modal">
+    <div class="modal-card" style="max-width: 500px;">
+      <div class="modal-header">
+        <div>
+          <h3 style="color:white; margin:0; font-size:1.3rem;">Choose Payment Method</h3>
+          <small style="color:var(--accent-gold-light);">Palani Murugan Function Hall</small>
+        </div>
+        <button type="button" class="modal-close" onclick="closeGatewayModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <p style="color: var(--text-dark); margin-bottom: 20px; font-size: 1rem;">
+          How would you like to pay the advance of <strong id="gateway-amount-display" style="color:var(--primary-maroon); font-size:1.25rem;">₹5,000</strong>?
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px;">
+          <!-- Real UPI QR Option -->
+          <button type="button" class="btn btn-gold btn-lg" onclick="switchToUpiModal()" style="padding: 16px;">
+            <span style="font-size: 1.05rem;">📱 Scan & Pay with UPI QR Code</span>
+            <span class="btn-ta">Google Pay / PhonePe / Paytm / BHIM</span>
+          </button>
+
+          <!-- Test Simulation Option -->
+          <button type="button" class="btn btn-primary btn-lg" id="btn-simulate-test" onclick="executeTestPayment()" style="padding: 16px;">
+            <span style="font-size: 1.05rem;">⚡ Confirm Instant Test Payment</span>
+            <span class="btn-ta">சோதனை முறையில் முன்பதிவை உறுதி செய்க</span>
+          </button>
+        </div>
+
+        <div class="alert alert-info" style="font-size: 0.82rem; text-align: left; margin: 0;">
+          ℹ️ <strong>Gateway Status:</strong> Razorpay is running in sandbox/test mode. You can scan the official UPI QR code (<code>rajm19407@okaxis</code>) or simulate an instant test payment to confirm your booking.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transaction Successful Modal (பரிவர்த்தனை வெற்றிகரமானது) -->
+  <div class="modal-backdrop" id="tx-success-modal">
+    <div class="modal-card" style="max-width: 520px; text-align: center; border-radius: 18px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.3); border: 2px solid #22c55e;">
+      
+      <!-- Green Header -->
+      <div style="background: linear-gradient(135deg, #15803d, #166534); color: white; padding: 28px 20px 22px; position: relative;">
+        <!-- Animated Circle Checkmark -->
+        <div style="width: 74px; height: 74px; background: white; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 25px rgba(0,0,0,0.25);">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <h2 style="font-family: var(--font-heading); color: #fff; margin: 0; font-size: 1.65rem; letter-spacing: 0.5px;">
+          Transaction Successful!
+        </h2>
+        <div style="color: #bbf7d0; font-size: 0.95rem; margin-top: 4px; font-weight: 500;">
+          பரிவர்த்தனை வெற்றிகரமாக முடிந்தது!
+        </div>
+      </div>
+
+      <div class="modal-body" style="padding: 24px; background: #ffffff;">
+        <!-- Amount Highlight -->
+        <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 14px; margin-bottom: 20px;">
+          <small style="color: #166534; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-size: 0.78rem;">
+            Amount Received (பெறப்பட்ட தொகை)
+          </small>
+          <div id="tx-success-amount" style="font-size: 2.3rem; font-weight: 800; color: #15803d; font-family: var(--font-heading); margin: 2px 0;">
+            ₹5,000.00
+          </div>
+          <span class="badge" style="background: #dcfce7; color: #166534; font-size: 0.8rem; padding: 4px 12px; font-weight: 600;">
+            ✓ VERIFIED & CONFIRMED
+          </span>
+        </div>
+
+        <!-- Receipt Summary Box -->
+        <div style="text-align: left; background: #fafaf9; border: 1px solid var(--border-light); border-radius: 12px; padding: 16px; margin-bottom: 20px; font-size: 0.92rem; line-height: 1.8;">
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px; margin-bottom: 6px;">
+            <span style="color: var(--text-muted);">Booking Reference:</span>
+            <strong id="tx-success-booking-ref" style="font-family: monospace; color: var(--primary-maroon);">#PMH-XXXX</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px; margin-bottom: 6px;">
+            <span style="color: var(--text-muted);">Payment Reference:</span>
+            <code id="tx-success-payment-ref" style="color: #15803d; font-weight: bold;">PAY-XXXX</code>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px; margin-bottom: 6px;">
+            <span style="color: var(--text-muted);">Event Date (நாள்):</span>
+            <strong id="tx-success-event-date">-</strong>
+          </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px dashed #e5e7eb; padding-bottom: 6px; margin-bottom: 6px;">
+            <span style="color: var(--text-muted);">Hall:</span>
+            <span>Palani Murugan Function Hall</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; padding-top: 4px;">
+            <span style="color: var(--text-muted);">Remaining Balance (மீதி):</span>
+            <strong id="tx-success-remaining" style="color: var(--accent-gold-dark); font-size: 1.05rem;">₹12,500</strong>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button type="button" class="btn btn-primary btn-lg" onclick="window.print()" style="width: 100%; padding: 13px;">
+            <span>🖨️ Print / Save Official Receipt</span>
+            <span class="btn-ta">ரசீதை அச்சிடுக அல்லது PDF ஆக சேமிக்க</span>
+          </button>
+          <div style="display: flex; gap: 10px;">
+            <a href="/customer-dashboard.html" class="btn btn-outline" style="flex: 1; padding: 10px; text-align: center;">
+              <span>📋 My Dashboard</span>
+            </a>
+            <button type="button" class="btn btn-gold" onclick="closeTxSuccessModal()" style="flex: 1; padding: 10px;">
+              <span>Done / View Booking ✓</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer" style="margin-top:60px;">
+    <div class="container" style="text-align: center;">
+      <p>&copy; 2026 Palani Murugan Function Hall | Contact: 9655609405 | UPI: rajm19407@okaxis</p>
+    </div>
+  </footer>
+
+  <script src="/js/app.js"></script>
+  <script>
+    let currentBooking = null;
+    let currentPendingOrder = null;
+
+    function openManualUpiModal(amountRupees) {
+      document.getElementById('manual-upi-amount-display').textContent = App.formatINR(amountRupees);
+      const upiUrl = `upi://pay?pa=rajm19407@okaxis&pn=Palani%20Murugan%20Function%20Hall&am=${amountRupees}&cu=INR&tn=Booking_${currentBooking?.booking_ref || ''}`;
+      
+      const intentLink = document.getElementById('upi-intent-link');
+      if (intentLink) intentLink.href = upiUrl;
+
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${encodeURIComponent(upiUrl)}`;
+      const qrImg = document.getElementById('upi-qr-image');
+      if (qrImg) qrImg.src = qrApiUrl;
+
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const mobileWrapper = document.getElementById('mobile-intent-wrapper');
+      if (mobileWrapper) mobileWrapper.style.display = isMobile ? 'block' : 'none';
+
+      document.getElementById('manual-upi-modal').classList.add('active');
+    }
+
+    function closeManualUpiModal() {
+      document.getElementById('manual-upi-modal').classList.remove('active');
+    }
+
+    function closeGatewayModal() {
+      document.getElementById('gateway-choice-modal').classList.remove('active');
+    }
+
+    function switchToUpiModal() {
+      closeGatewayModal();
+      const amountToPay = currentBooking.booking_status === 'pending'
+        ? (currentBooking.applied_advance_paise / 100)
+        : (currentBooking.remaining_paise / 100);
+      openManualUpiModal(amountToPay);
+    }
+
+    async function executeTestPayment() {
+      if (!currentPendingOrder) return;
+      const btn = document.getElementById('btn-simulate-test');
+      btn.disabled = true;
+      btn.innerHTML = 'Verifying Test Payment...';
+
+      try {
+        const verifyRes = await App.apiFetch('/api/payments/verify', {
+          method: 'POST',
+          body: JSON.stringify({
+            razorpay_order_id: currentPendingOrder.orderId,
+            razorpay_payment_id: `pay_test_${Date.now()}`,
+            razorpay_signature: 'test_signature'
+          })
+        });
+
+        if (verifyRes.ok && verifyRes.data.success) {
+          App.toast('Test payment verified! Booking confirmed.', 'success');
+          closeGatewayModal();
+          await loadExistingBooking(currentBooking.id);
+        } else {
+          App.toast(verifyRes.data.message || 'Verification failed.', 'error');
+          btn.disabled = false;
+        }
+      } catch (e) {
+        App.toast('Error verifying payment.', 'error');
+        btn.disabled = false;
+      }
+    }
+
+    function copyUpiId() {
+      navigator.clipboard.writeText('rajm19407@okaxis');
+      const copyBtnText = document.getElementById('copy-text');
+      if (copyBtnText) {
+        copyBtnText.textContent = 'Copied! ✓';
+        setTimeout(() => copyBtnText.textContent = 'Copy UPI', 2000);
+      }
+      App.toast('UPI ID rajm19407@okaxis copied to clipboard!', 'success');
+    }
+
+    async function simulateTestAdvance(bookingId, amountRupees) {
+      try {
+        App.toast('Creating test order for ₹' + amountRupees + '...', 'info');
+        const orderRes = await App.apiFetch('/api/payments/create-order', {
+          method: 'POST',
+          body: JSON.stringify({ bookingId, amount: amountRupees })
+        });
+
+        if (!orderRes.ok || !orderRes.data.success) {
+          App.toast(orderRes.data.message || 'Error creating order.', 'error');
+          return;
+        }
+
+        const order = orderRes.data.order;
+        App.toast('Verifying payment...', 'info');
+
+        const verifyRes = await App.apiFetch('/api/payments/verify', {
+          method: 'POST',
+          body: JSON.stringify({
+            razorpay_order_id: order.orderId,
+            razorpay_payment_id: `pay_test_${Date.now()}`,
+            razorpay_signature: 'test_signature'
+          })
+        });
+
+        if (verifyRes.ok && verifyRes.data.success) {
+          App.toast('Payment verified! Booking updated successfully.', 'success');
+          await loadExistingBooking(bookingId);
+        } else {
+          App.toast(verifyRes.data.message || 'Verification failed.', 'error');
+        }
+      } catch (err) {
+        App.toast('Error processing test payment.', 'error');
+      }
+    }
+
+    async function submitInlineUtr(bookingId, amountRupees, inputId = 'inline-utr-input') {
+      const input = document.getElementById(inputId);
+      const ref = input ? input.value.trim() : '';
+
+      if (!ref) {
+        App.toast('Please enter the 12-digit UPI reference / UTR number.', 'warning');
+        return;
+      }
+
+      try {
+        const res = await App.apiFetch('/api/payments/manual', {
+          method: 'POST',
+          body: JSON.stringify({
+            bookingId,
+            amount: amountRupees,
+            upiRef: ref
+          })
+        });
+
+        if (res.ok && res.data.success) {
+          App.toast('Manual UPI payment submitted! Owner will verify and confirm.', 'success');
+          await loadExistingBooking(bookingId);
+        } else {
+          App.toast(res.data.message || 'Submission failed.', 'error');
+        }
+      } catch (e) {
+        App.toast('Network error submitting payment proof.', 'error');
+      }
+    }
+
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const bookingId = urlParams.get('id');
+
+      if (!App.isLoggedIn()) {
+        App.toast('Please log in to manage your bookings.', 'warning');
+        setTimeout(() => window.location.href = `/login.html?redirect=booking${bookingId ? '&id=' + bookingId : ''}`, 1000);
+        return;
+      }
+
+      if (bookingId) {
+        await loadExistingBooking(bookingId);
+      } else {
+        renderNewBookingForm();
+      }
+
+      // Handle manual UPI form submission
+      document.getElementById('manual-upi-submit-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const ref = document.getElementById('upi-ref-input').value.trim();
+        if (!ref) {
+          App.toast('Please enter the transaction reference number.', 'error');
+          return;
+        }
+
+        const submitBtn = document.getElementById('btn-submit-manual-upi');
+        submitBtn.disabled = true;
+
+        const amountToPay = currentBooking.booking_status === 'pending'
+          ? (currentBooking.applied_advance_paise / 100)
+          : (currentBooking.remaining_paise / 100);
+
+        try {
+          const res = await App.apiFetch('/api/payments/manual', {
+            method: 'POST',
+            body: JSON.stringify({
+              bookingId: currentBooking.id,
+              amount: amountToPay,
+              upiRef: ref
+            })
+          });
+
+          if (res.ok && res.data.success) {
+            App.toast('Manual payment submitted! The hall owner will verify your payment.', 'success');
+            closeManualUpiModal();
+            await loadExistingBooking(currentBooking.id);
+          } else {
+            App.toast(res.data.message || 'Failed to submit payment.', 'error');
+            submitBtn.disabled = false;
+          }
+        } catch (err) {
+          App.toast('Network error. Please try again.', 'error');
+          submitBtn.disabled = false;
+        }
+      });
+    });
+
+    async function loadExistingBooking(id) {
+      const container = document.getElementById('booking-container');
+      try {
+        const res = await App.apiFetch(`/api/bookings/${id}`);
+        if (!res.ok || !res.data.success) {
+          container.innerHTML = `
+            <div class="alert alert-error" style="text-align:center;">
+              <h3>Booking Not Found</h3>
+              <p>${res.data.message || 'Unable to retrieve this booking.'}</p>
+              <a href="/" class="btn btn-primary" style="margin-top:16px;">Return Home</a>
+            </div>
+          `;
+          return;
+        }
+
+        currentBooking = res.data.booking;
+        renderBookingCard(currentBooking);
+      } catch (err) {
+        container.innerHTML = `<div class="alert alert-error">Failed to load booking. Please try again.</div>`;
+      }
+    }
+
+    function renderBookingCard(b) {
+      const container = document.getElementById('booking-container');
+
+      const isAdvancePaid = b.total_paid_paise >= b.applied_advance_paise;
+      const isFullyPaid = b.remaining_paise <= 0;
+      const advanceDue = (b.applied_advance_paise / 100);
+      const remainingDue = (b.remaining_paise / 100);
+
+      container.innerHTML = `
+        <div class="pricing-card" style="margin-bottom:30px;">
+          <div class="pricing-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div>
+              <h2 style="color:white; font-size:1.6rem;">Booking #${b.booking_ref}</h2>
+              <span class="tamil-sub" style="color:var(--accent-gold-light);">${b.event_type} - ${App.formatDate(b.event_date)}</span>
+            </div>
+            <div>
+              <span class="badge badge-${b.booking_status}" style="font-size:0.95rem; padding:6px 14px;">
+                ${b.booking_status.toUpperCase()}
+              </span>
+              <span class="badge badge-${b.payment_status}" style="font-size:0.95rem; padding:6px 14px; margin-left:6px;">
+                ${b.payment_status.toUpperCase()}
+              </span>
+            </div>
+          </div>
+
+          <div class="pricing-body">
+            <div class="form-row" style="margin-bottom:20px;">
+              <div>
+                <strong>Customer Name:</strong> ${b.customer_name}<br>
+                <strong>Mobile:</strong> ${b.customer_mobile}<br>
+                <strong>Email:</strong> ${b.customer_email}
+              </div>
+              <div>
+                <strong>Event Date:</strong> ${App.formatDate(b.event_date)} (${b.num_days} Day${b.num_days > 1 ? 's' : ''})<br>
+                <strong>Venue:</strong> ${b.hall_name}<br>
+                <strong>Venue Phone:</strong> ${b.hall_contact}
+              </div>
+            </div>
+
+            <table class="price-calc-table">
+              <tr>
+                <td>Daily Hall Rent Applied:</td>
+                <td class="amount">${App.formatINR(b.applied_daily_rent_paise / 100)}</td>
+              </tr>
+              <tr>
+                <td>Duration:</td>
+                <td class="amount">${b.num_days} Day${b.num_days > 1 ? 's' : ''}</td>
+              </tr>
+              <tr class="total-row">
+                <td>Total Booking Rent:</td>
+                <td class="amount">${App.formatINR(b.total_amount_paise / 100)}</td>
+              </tr>
+              <tr>
+                <td>Configured Booking Advance:</td>
+                <td class="amount" style="color:var(--accent-gold-dark);">${App.formatINR(b.applied_advance_paise / 100)}</td>
+              </tr>
+              <tr>
+                <td>Total Verified Paid:</td>
+                <td class="amount" style="color:var(--status-available);">${App.formatINR(b.total_paid_paise / 100)}</td>
+              </tr>
+              <tr class="total-row">
+                <td>Remaining Outstanding Balance:</td>
+                <td class="amount" style="color:${b.remaining_paise > 0 ? 'var(--status-booked)' : 'var(--status-available)'};">
+                  ${App.formatINR(b.remaining_paise / 100)}
+                </td>
+              </tr>
+            </table>
+
+            ${b.booking_status === 'pending' ? `
+              <div class="alert alert-warning" style="margin:20px 0;">
+                ⚠️ <strong>Booking Status: PENDING ADVANCE PAYMENT</strong><br>
+                To officially confirm your reservation for ${App.formatDate(b.event_date)}, please pay the advance amount of <strong>${App.formatINR(advanceDue)}</strong>.
+              </div>
+
+              <!-- Direct In-Page UPI Payment Card -->
+              <div style="background: white; border: 2px solid var(--accent-gold); border-radius: var(--radius-md); padding: 24px; margin: 24px 0; box-shadow: var(--shadow-md);">
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <span class="badge" style="background:#fef3c7; color:#92400e; font-size:0.85rem; padding:4px 12px; margin-bottom:6px;">
+                    OFFICIAL UPI PAYMENT (நேரடி யுபிஐ)
+                  </span>
+                  <h3 style="color:var(--primary-maroon); font-size:1.4rem; margin-top:4px;">
+                    Scan & Pay ₹5,000 Advance
+                  </h3>
+                  <div class="tamil-sub">கூகுள் பே / போன்பே / பேடிஎம் மூலம் செலுத்தவும்</div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: center;" class="upi-inline-grid">
+                  <!-- QR Code Column -->
+                  <div style="text-align: center; background: #faf6f0; padding: 14px; border-radius: 12px; border: 1px solid var(--border-light);">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent('upi://pay?pa=rajm19407@okaxis&pn=Palani%20Murugan%20Function%20Hall&am=' + advanceDue + '&cu=INR&tn=Booking_' + b.booking_ref)}"
+                         alt="UPI QR Code" style="width: 200px; height: 200px; display: block; margin: 0 auto; border-radius: 8px; border: 2px solid var(--accent-gold);">
+                    <div style="margin-top: 10px; display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; font-size: 0.72rem; font-weight: 600;">
+                      <span style="background: #eef2ff; color: #3730a3; padding: 2px 6px; border-radius: 4px;">Google Pay</span>
+                      <span style="background: #f3e8ff; color: #6b21a8; padding: 2px 6px; border-radius: 4px;">PhonePe</span>
+                      <span style="background: #e0f2fe; color: #0369a1; padding: 2px 6px; border-radius: 4px;">Paytm</span>
+                      <span style="background: #fef3c7; color: #92400e; padding: 2px 6px; border-radius: 4px;">BHIM</span>
+                    </div>
+                  </div>
+
+                  <!-- Details & Submit UTR Column -->
+                  <div>
+                    <div class="upi-box" style="margin-bottom: 16px;">
+                      <div>
+                        <small style="color:var(--text-muted); display:block; font-size:0.8rem;">Official UPI ID (யுபிஐ ஐடி):</small>
+                        <span class="upi-id-text" style="font-size:1.15rem;">rajm19407@okaxis</span>
+                      </div>
+                      <button type="button" class="btn btn-gold btn-sm" onclick="navigator.clipboard.writeText('rajm19407@okaxis'); App.toast('UPI ID copied to clipboard!', 'success');">
+                        <span>Copy UPI</span>
+                      </button>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                      <label class="form-label" for="inline-utr-input" style="font-size:0.95rem;">
+                        Step 2: Enter 12-Digit UPI Ref / UTR No from Receipt:
+                      </label>
+                      <div style="display:flex; gap:10px;">
+                        <input type="text" class="form-input" id="inline-utr-input" placeholder="e.g. 429182390123" style="font-family: monospace;">
+                        <button type="button" class="btn btn-primary" onclick="submitInlineUtr(${b.id}, ${advanceDue})">
+                          <span>Submit Proof</span>
+                        </button>
+                      </div>
+                      <small style="color:var(--text-muted); display:block; margin-top:4px;">
+                        The hall owner will verify the transaction and confirm your booking.
+                      </small>
+                    </div>
+
+                    <!-- Instant Test Simulator -->
+                    <div style="border-top: 1px dashed var(--border-light); padding-top: 14px; margin-top: 14px;">
+                      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+                        <div>
+                          <small style="color:var(--text-muted); font-weight:bold; display:block;">⚡ Want to test booking confirmation right now?</small>
+                          <small style="color:var(--text-muted);">Simulate instant verified test advance payment</small>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-gold" onclick="simulateTestAdvance(${b.id}, ${advanceDue})">
+                          <span>Confirm Test ₹5,000 Payment</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            ${b.booking_status === 'confirmed' && !isFullyPaid ? `
+              <div class="alert alert-info" style="margin:20px 0;">
+                🎉 <strong>Booking Confirmed!</strong> Your advance payment has been verified.<br>
+                You have an outstanding remaining balance of <strong>${App.formatINR(remainingDue)}</strong> due before the event.
+              </div>
+
+              <!-- Direct In-Page UPI Payment Card for Balance -->
+              <div style="background: white; border: 2px solid var(--accent-gold); border-radius: var(--radius-md); padding: 24px; margin: 24px 0; box-shadow: var(--shadow-md);">
+                <div style="text-align: center; margin-bottom: 20px;">
+                  <span class="badge" style="background:#fef3c7; color:#92400e; font-size:0.85rem; padding:4px 12px; margin-bottom:6px;">
+                    SETTLE REMAINING BALANCE (மீதித் தொகை)
+                  </span>
+                  <h3 style="color:var(--primary-maroon); font-size:1.4rem; margin-top:4px;">
+                    Scan & Pay Balance: ${App.formatINR(remainingDue)}
+                  </h3>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 240px 1fr; gap: 24px; align-items: center;" class="upi-inline-grid">
+                  <div style="text-align: center; background: #faf6f0; padding: 14px; border-radius: 12px; border: 1px solid var(--border-light);">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=4&data=${encodeURIComponent('upi://pay?pa=rajm19407@okaxis&pn=Palani%20Murugan%20Function%20Hall&am=' + remainingDue + '&cu=INR&tn=Balance_' + b.booking_ref)}"
+                         alt="UPI QR Code" style="width: 200px; height: 200px; display: block; margin: 0 auto; border-radius: 8px; border: 2px solid var(--accent-gold);">
+                  </div>
+
+                  <div>
+                    <div class="upi-box" style="margin-bottom: 16px;">
+                      <div>
+                        <small style="color:var(--text-muted); display:block;">Official UPI ID:</small>
+                        <span class="upi-id-text" style="font-size:1.15rem;">rajm19407@okaxis</span>
+                      </div>
+                      <button type="button" class="btn btn-gold btn-sm" onclick="navigator.clipboard.writeText('rajm19407@okaxis'); App.toast('UPI ID copied to clipboard!', 'success');">
+                        <span>Copy UPI</span>
+                      </button>
+                    </div>
+
+                    <div style="margin-bottom: 16px;">
+                      <label class="form-label" for="inline-utr-input-balance" style="font-size:0.95rem;">
+                        Enter 12-Digit UPI Ref / UTR No:
+                      </label>
+                      <div style="display:flex; gap:10px;">
+                        <input type="text" class="form-input" id="inline-utr-input-balance" placeholder="e.g. 429182390123" style="font-family: monospace;">
+                        <button type="button" class="btn btn-primary" onclick="submitInlineUtr(${b.id}, ${remainingDue}, 'inline-utr-input-balance')">
+                          <span>Submit Proof</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style="border-top: 1px dashed var(--border-light); padding-top: 14px;">
+                      <button type="button" class="btn btn-sm btn-gold" onclick="simulateTestAdvance(${b.id}, ${remainingDue})">
+                        <span>Simulate Test Balance Payment (${App.formatINR(remainingDue)})</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            ${isFullyPaid ? `
+              <div class="alert alert-success" style="text-align:center; margin:20px 0;">
+                ✅ <strong>Fully Paid!</strong> All rental fees have been completely settled. We look forward to hosting your event!
+              </div>
+            ` : ''}
+
+            <!-- Payments History -->
+            <h4 style="margin: 28px 0 14px; color:var(--primary-maroon);">Payment History & Audit Trail</h4>
+            <div class="data-table-container">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Payment Ref</th>
+                    <th>Method</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${b.payments && b.payments.length > 0 ? b.payments.map(p => `
+                    <tr>
+                      <td><code>${p.payment_ref}</code></td>
+                      <td>${p.payment_method === 'manual_upi' ? 'Manual UPI' : 'Razorpay'}</td>
+                      <td><strong>${App.formatINR(p.amount_paise / 100)}</strong></td>
+                      <td><span class="badge badge-${p.payment_status}">${p.payment_status}</span></td>
+                      <td><small>${p.manual_upi_ref ? 'Ref: ' + p.manual_upi_ref : (p.notes || '-')}</small></td>
+                      <td><small>${App.formatDate(p.created_at)}</small></td>
+                    </tr>
+                  `).join('') : '<tr><td colspan="6" style="text-align:center;">No payment attempts yet.</td></tr>'}
+                </tbody>
+              </table>
+            </div>
+
+            <div style="text-align:right; margin-top:20px;">
+              <a href="/customer-dashboard.html" class="btn btn-outline btn-sm">
+                <span>View In Dashboard</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function payViaRazorpay(amountRupees) {
+      try {
+        const orderRes = await App.apiFetch('/api/payments/create-order', {
+          method: 'POST',
+          body: JSON.stringify({
+            bookingId: currentBooking.id,
+            amount: amountRupees
+          })
+        });
+
+        if (!orderRes.ok || !orderRes.data.success) {
+          App.toast(orderRes.data.message || 'Failed to create payment order.', 'error');
+          return;
+        }
+
+        const order = orderRes.data.order;
+
+        if (order.testMode) {
+          currentPendingOrder = order;
+          document.getElementById('gateway-amount-display').textContent = App.formatINR(order.amount / 100);
+          document.getElementById('gateway-choice-modal').classList.add('active');
+          return;
+        }
+
+        // Real Razorpay Checkout options
+        const options = {
+          key: order.key,
+          amount: order.amount,
+          currency: order.currency,
+          name: 'Palani Murugan Function Hall',
+          description: `Booking #${order.bookingRef} Payment`,
+          image: '/images/hall/hall-photo-1.jpg',
+          order_id: order.orderId,
+          handler: async function (response) {
+            App.toast('Payment authorized. Verifying signature on server...', 'info');
+            const verifyRes = await App.apiFetch('/api/payments/verify', {
+              method: 'POST',
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              })
+            });
+
+            if (verifyRes.ok && verifyRes.data.success) {
+              App.toast('Payment verified successfully! Your booking is confirmed.', 'success');
+              await loadExistingBooking(currentBooking.id);
+            } else {
+              App.toast(verifyRes.data.message || 'Payment signature verification failed.', 'error');
+            }
+          },
+          prefill: {
+            name: order.customerName,
+            email: order.customerEmail,
+            contact: order.customerMobile
+          },
+          theme: {
+            color: '#701325'
+          }
+        };
+
+        if (typeof Razorpay === 'undefined') {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            s.onload = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+          });
+        }
+
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+          App.toast(`Payment failed: ${response.error.description}`, 'error');
+        });
+        rzp.open();
+      } catch (err) {
+        App.toast('Payment processing error. Please try again.', 'error');
+      }
+    }
+
+    function renderNewBookingForm() {
+      // If user came here without an existing booking, render form with saved state
+      const saved = JSON.parse(sessionStorage.getItem('pending_booking') || '{}');
+      const user = App.getUser();
+
+      const container = document.getElementById('booking-container');
+      container.innerHTML = `
+        <div class="booking-form-card">
+          <form id="standalone-booking-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="b-name">Customer Full Name <span class="required">*</span></label>
+                <input type="text" class="form-input" id="b-name" value="${saved.name || user?.fullName || ''}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="b-mobile">Mobile Number <span class="required">*</span></label>
+                <input type="tel" class="form-input" id="b-mobile" value="${saved.mobile || user?.mobile || ''}" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="b-email">Email Address <span class="required">*</span></label>
+                <input type="email" class="form-input" id="b-email" value="${saved.email || user?.email || ''}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="b-event-type">Event Type <span class="required">*</span></label>
+                <select class="form-select" id="b-event-type" required>
+                  <option value="Marriage / Wedding">Marriage / Wedding (திருமணம்)</option>
+                  <option value="Reception">Reception (வரவேற்பு)</option>
+                  <option value="Engagement">Engagement (நிச்சயதார்த்தம்)</option>
+                  <option value="Puberty Ceremony">Puberty Ceremony (மஞ்சள் நீராட்டு)</option>
+                  <option value="Ear Piercing">Ear Piercing (காதுகுத்து)</option>
+                  <option value="Birthday Celebration">Birthday Celebration (பிறந்தநாள் விழா)</option>
+                  <option value="Corporate / Meeting">Corporate / Meeting (கூட்டம்)</option>
+                  <option value="Other Auspicious Event">Other Auspicious Event (மற்ற சுபநிகழ்ச்சி)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="b-event-date">Event Date <span class="required">*</span></label>
+                <input type="date" class="form-input" id="b-event-date" value="${saved.eventDate || ''}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="b-num-days">Number of Days <span class="required">*</span></label>
+                <input type="number" class="form-input" id="b-num-days" value="${saved.numDays || 1}" min="1" max="15" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="b-special-req">Special Requirements</label>
+              <textarea class="form-textarea" id="b-special-req" rows="3" placeholder="Stage preferences, timing, etc.">${saved.specialRequirements || ''}</textarea>
+            </div>
+
+            <div class="live-summary-card">
+              <div class="summary-row">
+                <span>Daily Rent Rate:</span>
+                <span>₹17,500</span>
+              </div>
+              <div class="summary-row">
+                <span>Duration:</span>
+                <span id="b-sum-days">1 Day</span>
+              </div>
+              <div class="summary-row total">
+                <span>Total Booking Amount:</span>
+                <span id="b-sum-total">₹17,500</span>
+              </div>
+              <div class="summary-row" style="color:var(--accent-gold-dark); font-weight:bold;">
+                <span>Required Advance:</span>
+                <span id="b-sum-advance">₹5,000</span>
+              </div>
+              <div class="summary-row">
+                <span>Remaining Balance (One Day):</span>
+                <span id="b-sum-balance">₹12,500</span>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" style="width:100%;">
+              <span>Create Booking & Proceed to Advance (₹5,000)</span>
+              <span class="btn-ta">முன்பதிவு செய்து ₹5,000 முன்பணம் செலுத்த</span>
+            </button>
+          </form>
+        </div>
+      `;
+
+      const daysInput = document.getElementById('b-num-days');
+      const dateInput = document.getElementById('b-event-date');
+      dateInput.min = new Date().toISOString().split('T')[0];
+
+      function updateStandaloneCalc() {
+        const days = parseInt(daysInput.value, 10) || 1;
+        const total = 17500 * days;
+        const advance = 5000;
+        const bal = total - advance;
+
+        document.getElementById('b-sum-days').textContent = `${days} Day${days > 1 ? 's' : ''}`;
+        document.getElementById('b-sum-total').textContent = App.formatINR(total);
+        document.getElementById('b-sum-advance').textContent = App.formatINR(advance);
+        document.getElementById('b-sum-balance').textContent = App.formatINR(bal);
+      }
+
+      daysInput.addEventListener('input', updateStandaloneCalc);
+      updateStandaloneCalc();
+
+      document.getElementById('standalone-booking-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          const res = await App.apiFetch('/api/bookings', {
+            method: 'POST',
+            body: JSON.stringify({
+              customerName: document.getElementById('b-name').value,
+              customerMobile: document.getElementById('b-mobile').value,
+              customerEmail: document.getElementById('b-email').value,
+              eventType: document.getElementById('b-event-type').value,
+              eventDate: document.getElementById('b-event-date').value,
+              numDays: parseInt(daysInput.value, 10) || 1,
+              specialRequirements: document.getElementById('b-special-req').value,
+              hallId: 1
+            })
+          });
+
+          if (res.ok && res.data.success) {
+            sessionStorage.removeItem('pending_booking');
+            App.toast('Booking created! Please pay the ₹5,000 advance.', 'success');
+            currentBooking = res.data.booking;
+            renderBookingCard(currentBooking);
+          } else {
+            App.toast(res.data.message || 'Booking creation failed.', 'error');
+          }
+        } catch (err) {
+          App.toast('Error creating booking. Please try again.', 'error');
+        }
+      });
+    }
+  </script>
+</body>
+</html>

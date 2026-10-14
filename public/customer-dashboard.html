@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Dashboard | Palani Murugan Function Hall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="container">
+      <div>📍 Vallavari, Aranthangi to Peravurani Road | Near Ayanar Kovil Temple</div>
+      <div>Support: <a href="tel:9655609405">9655609405</a></div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand-wrapper">
+        <div class="brand-logo-emblem">PM</div>
+        <div class="brand-title">
+          Palani Murugan
+          <small>வாடிக்கையாளர் டாஷ்போர்டு</small>
+        </div>
+      </a>
+      <div class="nav-actions" id="nav-auth-actions"></div>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+      <div class="sidebar-user">
+        <h4 id="user-display-name" style="color:var(--primary-maroon);">Customer</h4>
+        <small id="user-display-email" style="color:var(--text-muted); word-break:break-all;">Loading...</small>
+        <div style="margin-top:6px;"><span class="badge badge-success">Verified Customer</span></div>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li><a href="#bookings-tab" class="sidebar-link active" onclick="switchTab('bookings')">📅 My Bookings (முன்பதிவுகள்)</a></li>
+        <li><a href="#notifications-tab" class="sidebar-link" onclick="switchTab('notifications')">🔔 Notifications (<span id="notif-count">0</span>)</a></li>
+        <li><a href="#profile-tab" class="sidebar-link" onclick="switchTab('profile')">👤 Profile Settings</a></li>
+        <li><a href="/booking.html" class="sidebar-link" style="color:var(--accent-gold-dark);">➕ Book New Date</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <!-- Bookings Tab -->
+      <section id="tab-bookings">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h2 style="font-size:1.8rem; color:var(--primary-maroon);">My Reservations</h2>
+            <span class="tamil-sub">உங்கள் திருமண மஹால் முன்பதிவுகள்</span>
+          </div>
+          <a href="/booking.html" class="btn btn-primary btn-sm">
+            <span>+ Book Another Date</span>
+          </a>
+        </div>
+
+        <div id="bookings-list-container">
+          <p style="color:var(--text-muted);">Loading your bookings...</p>
+        </div>
+      </section>
+
+      <!-- Notifications Tab -->
+      <section id="tab-notifications" style="display:none;">
+        <h2 style="font-size:1.8rem; color:var(--primary-maroon); margin-bottom:16px;">Important Alerts & Updates</h2>
+        <div id="notifications-container">
+          <p style="color:var(--text-muted);">Loading notifications...</p>
+        </div>
+      </section>
+
+      <!-- Profile Tab -->
+      <section id="tab-profile" style="display:none;">
+        <h2 style="font-size:1.8rem; color:var(--primary-maroon); margin-bottom:16px;">Customer Profile</h2>
+        <div class="booking-form-card" style="max-width:540px; margin:0;">
+          <form id="profile-form">
+            <div class="form-group">
+              <label class="form-label" for="prof-name">Full Name</label>
+              <input type="text" class="form-input" id="prof-name" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="prof-mobile">Mobile Number</label>
+              <input type="tel" class="form-input" id="prof-mobile" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address (Read Only)</label>
+              <input type="email" class="form-input" id="prof-email" disabled style="background:#f1eae2;">
+            </div>
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+          </form>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    function switchTab(tabName) {
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      document.querySelector(`a[href="#${tabName}-tab"]`)?.classList.add('active');
+
+      document.getElementById('tab-bookings').style.display = tabName === 'bookings' ? 'block' : 'none';
+      document.getElementById('tab-notifications').style.display = tabName === 'notifications' ? 'block' : 'none';
+      document.getElementById('tab-profile').style.display = tabName === 'profile' ? 'block' : 'none';
+    }
+
+    async function cancelBooking(id, ref) {
+      const reason = prompt(`Please enter cancellation reason for booking #${ref}:`);
+      if (!reason) return;
+
+      try {
+        const res = await App.apiFetch(`/api/bookings/${id}/cancel`, {
+          method: 'POST',
+          body: JSON.stringify({ reason })
+        });
+
+        if (res.ok && res.data.success) {
+          App.toast('Booking cancellation request processed.', 'success');
+          loadDashboard();
+        } else {
+          App.toast(res.data.message || 'Failed to cancel booking.', 'error');
+        }
+      } catch (e) {
+        App.toast('Error cancelling booking.', 'error');
+      }
+    }
+
+    async function loadDashboard() {
+      const user = App.getUser();
+      if (!user) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      document.getElementById('user-display-name').textContent = user.fullName || 'Customer';
+      document.getElementById('user-display-email').textContent = user.email || '';
+      document.getElementById('prof-name').value = user.fullName || '';
+      document.getElementById('prof-mobile').value = user.mobile || '';
+      document.getElementById('prof-email').value = user.email || '';
+
+      // Load bookings
+      try {
+        const res = await App.apiFetch('/api/bookings/my');
+        const container = document.getElementById('bookings-list-container');
+
+        if (res.ok && res.data.bookings && res.data.bookings.length > 0) {
+          container.innerHTML = res.data.bookings.map(b => {
+            const isAdvanceDue = b.booking_status === 'pending';
+            const isBalanceDue = b.booking_status === 'confirmed' && b.remaining_paise > 0;
+
+            return `
+              <div class="pricing-card" style="margin-bottom:24px; border:1px solid var(--border-light);">
+                <div class="pricing-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; padding:18px 24px;">
+                  <div>
+                    <h3 style="color:white; font-size:1.3rem;">#${b.booking_ref} - ${b.event_type}</h3>
+                    <small style="color:var(--accent-gold-light);">${App.formatDate(b.event_date)} (${b.num_days} Day${b.num_days > 1 ? 's' : ''})</small>
+                  </div>
+                  <div>
+                    <span class="badge badge-${b.booking_status}">${b.booking_status.toUpperCase()}</span>
+                    <span class="badge badge-${b.payment_status}" style="margin-left:6px;">${b.payment_status.toUpperCase()}</span>
+                  </div>
+                </div>
+
+                <div class="pricing-body" style="padding:20px 24px;">
+                  <div class="summary-row">
+                    <span>Venue:</span>
+                    <strong>${b.hall_name}</strong>
+                  </div>
+                  <div class="summary-row">
+                    <span>Total Rent:</span>
+                    <strong>${App.formatINR(b.total_amount_paise / 100)}</strong>
+                  </div>
+                  <div class="summary-row">
+                    <span>Advance Required:</span>
+                    <strong style="color:var(--accent-gold-dark);">${App.formatINR(b.applied_advance_paise / 100)}</strong>
+                  </div>
+                  <div class="summary-row">
+                    <span>Amount Paid:</span>
+                    <strong style="color:var(--status-available);">${App.formatINR(b.total_paid_paise / 100)}</strong>
+                  </div>
+                  <div class="summary-row total">
+                    <span>Remaining Balance:</span>
+                    <strong style="color:${b.remaining_paise > 0 ? 'var(--status-booked)' : 'var(--status-available)'};">
+                      ${App.formatINR(b.remaining_paise / 100)}
+                    </strong>
+                  </div>
+
+                  <div style="margin-top:20px; display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+                    <a href="/booking.html?id=${b.id}" class="btn btn-outline btn-sm">
+                      <span>View Details & Payments</span>
+                    </a>
+
+                    ${isAdvanceDue ? `
+                      <a href="/booking.html?id=${b.id}" class="btn btn-primary btn-sm">
+                        <span>Pay Advance (${App.formatINR(b.applied_advance_paise / 100)})</span>
+                      </a>
+                    ` : ''}
+
+                    ${isBalanceDue ? `
+                      <a href="/booking.html?id=${b.id}" class="btn btn-gold btn-sm">
+                        <span>Pay Balance (${App.formatINR(b.remaining_paise / 100)})</span>
+                      </a>
+                    ` : ''}
+
+                    ${b.booking_status !== 'cancelled' ? `
+                      <button type="button" class="btn btn-sm" style="background:#fee2e2;color:#991b1b;border:1px solid #fecaca;"
+                              onclick="cancelBooking(${b.id}, '${b.booking_ref}')">
+                        <span>Cancel Booking</span>
+                      </button>
+                    ` : `
+                      <span style="color:var(--status-booked); font-size:0.88rem; align-self:center;">
+                        Cancelled (${b.cancellation_reason || 'By customer'})
+                      </span>
+                    `}
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        } else {
+          container.innerHTML = `
+            <div class="reviews-placeholder-box" style="margin:20px 0;">
+              <p>You have not made any bookings yet.</p>
+              <a href="/booking.html" class="btn btn-primary" style="margin-top:12px;">Reserve Palani Murugan Hall</a>
+            </div>
+          `;
+        }
+      } catch (err) {
+        document.getElementById('bookings-list-container').innerHTML = '<div class="alert alert-error">Error loading bookings.</div>';
+      }
+
+      // Load notifications
+      try {
+        const notifRes = await App.apiFetch('/api/auth/notifications');
+        if (notifRes.ok && notifRes.data.notifications) {
+          const list = notifRes.data.notifications;
+          const unread = list.filter(n => !n.is_read).length;
+          document.getElementById('notif-count').textContent = unread;
+
+          const nContainer = document.getElementById('notifications-container');
+          if (list.length > 0) {
+            nContainer.innerHTML = list.map(n => `
+              <div class="alert alert-${n.type || 'info'}" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                  <strong>${n.title}</strong><br>
+                  <span>${n.message}</span><br>
+                  <small style="opacity:0.8;">${App.formatDate(n.created_at)}</small>
+                </div>
+                ${!n.is_read ? `
+                  <button class="btn btn-sm btn-outline" onclick="markRead(${n.id})">Mark Read</button>
+                ` : ''}
+              </div>
+            `).join('');
+          } else {
+            nContainer.innerHTML = '<p style="color:var(--text-muted);">No notifications at this time.</p>';
+          }
+        }
+      } catch (e) {}
+    }
+
+    async function markRead(id) {
+      await App.apiFetch(`/api/auth/notifications/${id}/read`, { method: 'PATCH' });
+      loadDashboard();
+    }
+
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fullName = document.getElementById('prof-name').value.trim();
+      const mobile = document.getElementById('prof-mobile').value.trim();
+
+      try {
+        const res = await App.apiFetch('/api/auth/profile', {
+          method: 'PATCH',
+          body: JSON.stringify({ fullName, mobile })
+        });
+
+        if (res.ok && res.data.success) {
+          App.toast('Profile updated successfully!', 'success');
+          const u = App.getUser();
+          u.fullName = fullName;
+          u.mobile = mobile;
+          App.setAuth(App.getToken(), u);
+          loadDashboard();
+        } else {
+          App.toast(res.data.message || 'Update failed.', 'error');
+        }
+      } catch (e) {
+        App.toast('Network error.', 'error');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadDashboard();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owner Portal | Palani Murugan Function Hall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="container">
+      <div>🏛️ Palani Murugan Function Hall - Official Owner Management Console</div>
+      <div>Helpline: 9655609405</div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand-wrapper">
+        <div class="brand-logo-emblem">PM</div>
+        <div class="brand-title">
+          Palani Murugan
+          <small>உரிமையாளர் கட்டுப்பாட்டு அறை</small>
+        </div>
+      </a>
+      <div class="nav-actions" id="nav-auth-actions"></div>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+      <div class="sidebar-user">
+        <h4 id="owner-name" style="color:var(--primary-maroon);">Owner</h4>
+        <small id="owner-email" style="color:var(--text-muted); word-break:break-all;">Loading...</small>
+        <div style="margin-top:6px;"><span class="badge badge-confirmed">Authorized Owner</span></div>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li><a href="#overview" class="sidebar-link active" onclick="switchOwnerTab('overview')">📊 Overview Stats</a></li>
+        <li><a href="#bookings" class="sidebar-link" onclick="switchOwnerTab('bookings')">📅 Bookings Management</a></li>
+        <li><a href="#payments" class="sidebar-link" onclick="switchOwnerTab('payments')">💳 Payment Verification</a></li>
+        <li><a href="#hall-settings" class="sidebar-link" onclick="switchOwnerTab('hall-settings')">⚙️ Hall Settings & Pricing</a></li>
+        <li><a href="#gallery-mgr" class="sidebar-link" onclick="switchOwnerTab('gallery-mgr')">🖼️ Gallery & Photos</a></li>
+        <li><a href="#activity-logs" class="sidebar-link" onclick="switchOwnerTab('activity-logs')">📜 Activity Logs</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <!-- 1. Overview Tab -->
+      <section id="sec-overview">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h2 style="font-size:1.8rem; color:var(--primary-maroon);">Owner Dashboard Overview</h2>
+            <span class="tamil-sub">வணிக புள்ளிவிவரங்கள்</span>
+          </div>
+          <a href="/api/owner/reports/csv" class="btn btn-gold btn-sm" id="btn-export-csv" download>
+            <span>📥 Export Bookings CSV Report</span>
+          </a>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Bookings</div>
+            <div class="stat-value" id="stat-total-bookings">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Today's Events</div>
+            <div class="stat-value" id="stat-today-bookings" style="color:var(--accent-gold-dark);">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Upcoming Events</div>
+            <div class="stat-value" id="stat-upcoming-bookings">0</div>
+          </div>
+          <div class="stat-card" style="border: 2px solid var(--status-pending);">
+            <div class="stat-label">Pending Manual Payments</div>
+            <div class="stat-value" id="stat-pending-payments" style="color:var(--status-pending);">0</div>
+          </div>
+          <div class="stat-card" style="border: 2px solid var(--status-available);">
+            <div class="stat-label">Verified Revenue</div>
+            <div class="stat-value" id="stat-revenue" style="color:var(--status-available);">₹0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Outstanding Balance</div>
+            <div class="stat-value" id="stat-outstanding" style="color:var(--status-booked);">₹0</div>
+          </div>
+        </div>
+
+        <!-- Pending Verification Section (High Priority) -->
+        <div style="margin-top:36px;">
+          <h3 style="color:var(--primary-maroon); margin-bottom:14px;">⚠️ Pending Manual UPI Payments Awaiting Verification</h3>
+          <div id="pending-manual-container">
+            <p style="color:var(--text-muted);">No pending manual UPI transactions.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. Bookings Management Tab -->
+      <section id="sec-bookings" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <h2 style="font-size:1.8rem; color:var(--primary-maroon);">All Bookings</h2>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <input type="text" class="form-input" id="search-bookings" placeholder="Search ref, name, mobile..." style="width:220px;" oninput="loadBookings()">
+            <select class="form-select" id="filter-status" style="width:150px;" onchange="loadBookings()">
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Booking Ref</th>
+                <th>Customer</th>
+                <th>Event Date & Days</th>
+                <th>Total Rent</th>
+                <th>Advance</th>
+                <th>Paid</th>
+                <th>Balance</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="bookings-table-body">
+              <tr><td colspan="9" style="text-align:center;">Loading bookings...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 3. Payment Management Tab -->
+      <section id="sec-payments" style="display:none;">
+        <h2 style="font-size:1.8rem; color:var(--primary-maroon); margin-bottom:20px;">Transactions & Payment History</h2>
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Payment Ref</th>
+                <th>Booking Ref</th>
+                <th>Customer</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Reference / UTR</th>
+                <th>Date</th>
+                <th>Verify / Action</th>
+              </tr>
+            </thead>
+            <tbody id="payments-table-body">
+              <tr><td colspan="9" style="text-align:center;">Loading payments...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 4. Hall Settings & Pricing Tab -->
+      <section id="sec-hall-settings" style="display:none;">
+        <h2 style="font-size:1.8rem; color:var(--primary-maroon); margin-bottom:20px;">Hall Configuration & Pricing Policy</h2>
+        <div class="booking-form-card" style="margin:0; max-width:760px;">
+          <form id="hall-settings-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="setting-name">Hall Name</label>
+                <input type="text" class="form-input" id="setting-name" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-phone">Official Contact Number</label>
+                <input type="tel" class="form-input" id="setting-phone" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="setting-address">Hall Address</label>
+              <textarea class="form-textarea" id="setting-address" rows="2" required></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label" for="setting-rent">
+                  Daily Hall Rent (₹) <span class="required">*</span>
+                </label>
+                <input type="number" class="form-input" id="setting-rent" required min="1000">
+                <small style="color:var(--text-muted);">Default: ₹17,500</small>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="setting-advance">
+                  Booking Advance Amount (₹) <span class="required">*</span>
+                </label>
+                <input type="number" class="form-input" id="setting-advance" required min="500">
+                <small style="color:var(--text-muted);">Default: ₹5,000 (Protected owner setting)</small>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="setting-desc">Description</label>
+              <textarea class="form-textarea" id="setting-desc" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="setting-facilities">Facilities (Comma-separated)</label>
+              <input type="text" class="form-input" id="setting-facilities" placeholder="Spacious Hall, Dining Area, Modern Kitchen...">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg" id="btn-save-settings">Save Hall Settings</button>
+          </form>
+        </div>
+      </section>
+
+      <!-- 5. Gallery Manager Tab -->
+      <section id="sec-gallery-mgr" style="display:none;">
+        <h2 style="font-size:1.8rem; color:var(--primary-maroon); margin-bottom:20px;">Hall Photographs Manager</h2>
+        
+        <div class="booking-form-card" style="margin-bottom:30px; max-width:640px;">
+          <h3 style="margin-bottom:14px; color:var(--primary-maroon);">Upload New Hall Photograph</h3>
+          <form id="upload-image-form" enctype="multipart/form-data">
+            <div class="form-group">
+              <label class="form-label" for="upload-image-file">Select Image (JPG, PNG, WebP - Max 5MB)</label>
+              <input type="file" class="form-input" id="upload-image-file" accept="image/jpeg,image/png,image/webp" required>
+            </div>
+            <button type="submit" class="btn btn-primary" id="btn-upload-image">Upload Photo</button>
+          </form>
+        </div>
+
+        <h3 style="margin-bottom:16px; color:var(--primary-maroon);">Current Hall Photographs</h3>
+        <div class="gallery-grid" id="owner-gallery-grid"></div>
+      </section>
+
+      <!-- 6. Activity Logs Tab -->
+      <section id="sec-activity-logs" style="display:none;">
+        <h2 style="font-size:1.8rem; color:var(--primary-maroon); margin-bottom:20px;">System Activity & Audit Logs</h2>
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>User / Actor</th>
+                <th>Action</th>
+                <th>Entity</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="activity-logs-body">
+              <tr><td colspan="5" style="text-align:center;">Loading logs...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    function switchOwnerTab(tabName) {
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      document.querySelector(`a[href="#${tabName}"]`)?.classList.add('active');
+
+      const tabs = ['overview', 'bookings', 'payments', 'hall-settings', 'gallery-mgr', 'activity-logs'];
+      tabs.forEach(t => {
+        const el = document.getElementById(`sec-${t}`);
+        if (el) el.style.display = t === tabName ? 'block' : 'none';
+      });
+
+      if (tabName === 'bookings') loadBookings();
+      if (tabName === 'payments') loadPayments();
+      if (tabName === 'hall-settings') loadSettings();
+      if (tabName === 'gallery-mgr') loadGallery();
+      if (tabName === 'activity-logs') loadLogs();
+    }
+
+    async function loadOverview() {
+      const user = App.getUser();
+      if (!user || (user.role !== 'owner' && user.role !== 'admin')) {
+        window.location.href = '/login.html';
+        return;
+      }
+
+      document.getElementById('owner-name').textContent = user.fullName || 'Owner';
+      document.getElementById('owner-email').textContent = user.email || '';
+
+      try {
+        const res = await App.apiFetch('/api/owner/dashboard');
+        if (res.ok && res.data.success) {
+          const stats = res.data.stats;
+          document.getElementById('stat-total-bookings').textContent = stats.totalBookings;
+          document.getElementById('stat-today-bookings').textContent = stats.todayBookings;
+          document.getElementById('stat-upcoming-bookings').textContent = stats.upcomingBookings;
+          document.getElementById('stat-pending-payments').textContent = stats.pendingPaymentsCount;
+          document.getElementById('stat-revenue').textContent = App.formatINR(stats.verifiedRevenueRupees);
+          document.getElementById('stat-outstanding').textContent = App.formatINR(stats.totalOutstandingRupees);
+
+          // Render pending manual payments
+          const pendingContainer = document.getElementById('pending-manual-container');
+          if (res.data.pendingManualPayments && res.data.pendingManualPayments.length > 0) {
+            pendingContainer.innerHTML = `
+              <div class="data-table-container">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Booking Ref</th>
+                      <th>Customer</th>
+                      <th>Mobile</th>
+                      <th>Amount</th>
+                      <th>UTR / Reference</th>
+                      <th>Date Submitted</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${res.data.pendingManualPayments.map(p => `
+                      <tr>
+                        <td><strong>#${p.booking_ref}</strong></td>
+                        <td>${p.customer_name}</td>
+                        <td>${p.customer_mobile}</td>
+                        <td><strong style="color:var(--primary-maroon); font-size:1.1rem;">${App.formatINR(p.amount_paise / 100)}</strong></td>
+                        <td><code style="background:#fef3c7; padding:2px 6px; border-radius:4px;">${p.manual_upi_ref || 'N/A'}</code></td>
+                        <td>${App.formatDate(p.created_at)}</td>
+                        <td>
+                          <button class="btn btn-sm btn-primary" onclick="verifyManualPayment(${p.id}, true)">
+                            Approve (Mark Paid)
+                          </button>
+                          <button class="btn btn-sm" style="background:#fee2e2; color:#991b1b; margin-left:6px;" onclick="verifyManualPayment(${p.id}, false)">
+                            Reject
+                          </button>
+                        </td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            `;
+          } else {
+            pendingContainer.innerHTML = '<p style="color:var(--status-available); font-weight:bold;">✅ All manual payments have been verified! No pending items.</p>';
+          }
+        }
+      } catch (e) {
+        App.toast('Failed to load owner overview.', 'error');
+      }
+    }
+
+    async function verifyManualPayment(paymentId, approve) {
+      if (!confirm(`Are you sure you want to ${approve ? 'APPROVE and confirm' : 'REJECT'} this payment?`)) return;
+
+      try {
+        const res = await App.apiFetch(`/api/owner/payments/${paymentId}/verify`, {
+          method: 'PATCH',
+          body: JSON.stringify({ approve })
+        });
+
+        if (res.ok && res.data.success) {
+          App.toast(res.data.message, 'success');
+          loadOverview();
+          loadBookings();
+        } else {
+          App.toast(res.data.message || 'Verification failed.', 'error');
+        }
+      } catch (e) {
+        App.toast('Network error during verification.', 'error');
+      }
+    }
+
+    async function loadBookings() {
+      const search = document.getElementById('search-bookings').value.trim();
+      const status = document.getElementById('filter-status').value;
+
+      try {
+        const res = await App.apiFetch(`/api/owner/bookings?search=${encodeURIComponent(search)}&status=${encodeURIComponent(status)}`);
+        const tbody = document.getElementById('bookings-table-body');
+
+        if (res.ok && res.data.bookings && res.data.bookings.length > 0) {
+          tbody.innerHTML = res.data.bookings.map(b => `
+            <tr>
+              <td><strong>#${b.booking_ref}</strong></td>
+              <td>${b.customer_name}<br><small style="color:var(--text-muted);">${b.customer_mobile}</small></td>
+              <td>${App.formatDate(b.event_date)}<br><small>(${b.num_days} Day${b.num_days > 1 ? 's' : ''})</small></td>
+              <td>${App.formatINR(b.total_amount_paise / 100)}</td>
+              <td>${App.formatINR(b.applied_advance_paise / 100)}</td>
+              <td><strong style="color:var(--status-available);">${App.formatINR(b.total_paid_paise / 100)}</strong></td>
+              <td><strong style="color:${b.remaining_paise > 0 ? 'var(--status-booked)' : 'var(--status-available)'};">${App.formatINR(b.remaining_paise / 100)}</strong></td>
+              <td><span class="badge badge-${b.booking_status}">${b.booking_status}</span></td>
+              <td>
+                <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                  ${b.booking_status === 'pending' ? `
+                    <button class="btn btn-sm btn-primary" onclick="updateBookingStatus(${b.id}, 'confirmed')">Confirm</button>
+                  ` : ''}
+                  ${b.booking_status !== 'cancelled' ? `
+                    <button class="btn btn-sm" style="background:#fee2e2; color:#991b1b;" onclick="updateBookingStatus(${b.id}, 'cancelled')">Cancel</button>
+                  ` : ''}
+                  <a href="/booking.html?id=${b.id}" class="btn btn-sm btn-outline">View</a>
+                </div>
+              </td>
+            </tr>
+          `).join('');
+        } else {
+          tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;">No matching bookings found.</td></tr>';
+        }
+      } catch (e) {
+        document.getElementById('bookings-table-body').innerHTML = '<tr><td colspan="9" style="text-align:center; color:red;">Failed to load bookings.</td></tr>';
+      }
+    }
+
+    async function updateBookingStatus(id, status) {
+      let cancellationReason = null;
+      if (status === 'cancelled') {
+        cancellationReason = prompt('Please enter cancellation reason:');
+        if (!cancellationReason) return;
+      }
+
+      try {
+        const res = await App.apiFetch(`/api/owner/bookings/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status, cancellationReason })
+        });
+
+        if (res.ok && res.data.success) {
+          App.toast(`Booking status updated to ${status}.`, 'success');
+          loadBookings();
+          loadOverview();
+        } else {
+          App.toast(res.data.message || 'Update failed.', 'error');
+        }
+      } catch (e) {
+        App.toast('Error updating booking.', 'error');
+      }
+    }
+
+    async function loadPayments() {
+      try {
+        const res = await App.apiFetch('/api/owner/payments');
+        const tbody = document.getElementById('payments-table-body');
+        if (res.ok && res.data.payments) {
+          tbody.innerHTML = res.data.payments.map(p => `
+            <tr>
+              <td><code>${p.payment_ref}</code></td>
+              <td>#${p.booking_ref}</td>
+              <td>${p.customer_name}</td>
+              <td>${p.payment_method === 'manual_upi' ? 'Manual UPI' : 'Razorpay'}</td>
+              <td><strong>${App.formatINR(p.amount_paise / 100)}</strong></td>
+              <td><span class="badge badge-${p.payment_status}">${p.payment_status}</span></td>
+              <td><small>${p.razorpay_payment_id || p.manual_upi_ref || '-'}</small></td>
+              <td>${App.formatDate(p.created_at)}</td>
+              <td>
+                ${p.payment_method === 'manual_upi' && p.payment_status === 'pending' ? `
+                  <button class="btn btn-sm btn-primary" onclick="verifyManualPayment(${p.id}, true)">Verify</button>
+                ` : '-'}
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {}
+    }
+
+    async function loadSettings() {
+      try {
+        const res = await App.apiFetch('/api/halls/1');
+        if (res.ok && res.data.hall) {
+          const h = res.data.hall;
+          document.getElementById('setting-name').value = h.name;
+          document.getElementById('setting-phone').value = h.contact_number;
+          document.getElementById('setting-address').value = h.address;
+          document.getElementById('setting-rent').value = h.daily_rent;
+          document.getElementById('setting-advance').value = h.advance_amount;
+          document.getElementById('setting-desc').value = h.description || '';
+          document.getElementById('setting-facilities').value = (h.facilities || []).join(', ');
+        }
+      } catch (e) {}
+    }
+
+    document.getElementById('hall-settings-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const res = await App.apiFetch('/api/owner/settings', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            hallId: 1,
+            name: document.getElementById('setting-name').value,
+            contactNumber: document.getElementById('setting-phone').value,
+            address: document.getElementById('setting-address').value,
+            dailyRentRupees: parseFloat(document.getElementById('setting-rent').value),
+            advanceAmountRupees: parseFloat(document.getElementById('setting-advance').value),
+            description: document.getElementById('setting-desc').value,
+            facilities: document.getElementById('setting-facilities').value
+          })
+        });
+
+        if (res.ok && res.data.success) {
+          App.toast('Hall settings updated successfully!', 'success');
+        } else {
+          App.toast(res.data.message || 'Update failed.', 'error');
+        }
+      } catch (err) {
+        App.toast('Network error.', 'error');
+      }
+    });
+
+    async function loadGallery() {
+      try {
+        const res = await App.apiFetch('/api/halls/1');
+        const grid = document.getElementById('owner-gallery-grid');
+        if (res.ok && res.data.hall && res.data.hall.images) {
+          grid.innerHTML = res.data.hall.images.map(img => `
+            <div class="gallery-card" style="height:260px;">
+              <img src="${img.file_path}" alt="${img.original_name}">
+              <div style="padding:10px; background:white; display:flex; justify-content:space-between; align-items:center;">
+                <small style="color:var(--text-muted);">${img.original_name}</small>
+                <button class="btn btn-sm" style="background:#fee2e2; color:#991b1b;" onclick="deleteImage(${img.id})">Delete</button>
+              </div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {}
+    }
+
+    async function deleteImage(id) {
+      if (!confirm('Are you sure you want to delete this hall photo?')) return;
+      try {
+        const res = await App.apiFetch(`/api/owner/images/${id}`, { method: 'DELETE' });
+        if (res.ok && res.data.success) {
+          App.toast('Image deleted successfully.', 'success');
+          loadGallery();
+        } else {
+          App.toast(res.data.message || 'Failed to delete image.', 'error');
+        }
+      } catch (e) {
+        App.toast('Error deleting image.', 'error');
+      }
+    }
+
+    document.getElementById('upload-image-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fileInput = document.getElementById('upload-image-file');
+      if (!fileInput.files || fileInput.files.length === 0) return;
+
+      const formData = new FormData();
+      formData.append('image', fileInput.files[0]);
+      formData.append('hallId', '1');
+
+      try {
+        const res = await App.apiFetch('/api/owner/images', {
+          method: 'POST',
+          body: formData
+        });
+
+        if (res.ok && res.data.success) {
+          App.toast('Image uploaded successfully!', 'success');
+          fileInput.value = '';
+          loadGallery();
+        } else {
+          App.toast(res.data.message || 'Upload failed.', 'error');
+        }
+      } catch (e) {
+        App.toast('Error uploading image.', 'error');
+      }
+    });
+
+    async function loadLogs() {
+      try {
+        const res = await App.apiFetch('/api/owner/logs');
+        const tbody = document.getElementById('activity-logs-body');
+        if (res.ok && res.data.logs) {
+          tbody.innerHTML = res.data.logs.map(l => `
+            <tr>
+              <td><small>${App.formatDate(l.created_at)}</small></td>
+              <td>${l.user_name || 'System'} (${l.user_role || 'system'})</td>
+              <td><code>${l.action}</code></td>
+              <td>${l.entity_type || '-'} #${l.entity_id || ''}</td>
+              <td><small>${l.details || ''}</small></td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadOverview();
+    });
+  </script>
+</body>
+</html>

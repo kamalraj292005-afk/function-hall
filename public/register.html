@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Registration | Palani Murugan Function Hall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body style="min-height: 100vh; display: flex; flex-direction: column;">
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand-wrapper">
+        <div class="brand-logo-emblem">PM</div>
+        <div class="brand-title">
+          Palani Murugan
+          <small>பழனி முருகன் திருமண மஹால்</small>
+        </div>
+      </a>
+      <a href="/" class="btn btn-outline btn-sm">Home (முகப்பு)</a>
+    </div>
+  </nav>
+
+  <div class="container section" style="flex:1; display:flex; align-items:center; justify-content:center;">
+    <div class="booking-form-card" style="max-width: 520px; width: 100%;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h2 style="font-size: 1.8rem; color: var(--primary-maroon);">Create Your Account</h2>
+        <span class="tamil-sub">புதிய கணக்கு பதிவு செய்க</span>
+      </div>
+
+      <div id="register-alert"></div>
+
+      <form id="register-form">
+        <div class="form-group">
+          <label class="form-label" for="reg-name">Full Name <span class="required">*</span></label>
+          <input type="text" class="form-input" id="reg-name" required placeholder="Enter your full name">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-email">Email Address <span class="required">*</span></label>
+          <input type="email" class="form-input" id="reg-email" required placeholder="name@example.com">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reg-mobile">Mobile Number <span class="required">*</span></label>
+          <input type="tel" class="form-input" id="reg-mobile" required placeholder="10-digit mobile (e.g. 9876543210)">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="reg-password">Password <span class="required">*</span></label>
+            <input type="password" class="form-input" id="reg-password" required placeholder="Min 6 characters">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="reg-confirm">Confirm Password <span class="required">*</span></label>
+            <input type="password" class="form-input" id="reg-confirm" required placeholder="Re-enter password">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;" id="btn-reg-submit">
+          <span>Complete Registration</span>
+          <span class="btn-ta">பதிவு செய்க</span>
+        </button>
+      </form>
+
+      <div style="margin-top: 24px; text-align: center;">
+        <p style="color: var(--text-muted); font-size: 0.92rem;">
+          Already have an account? <a href="/login.html" style="color: var(--primary-maroon); font-weight: bold;">Sign In Here</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer" style="padding: 20px 0; text-align: center;">
+    <div class="container">
+      <small style="color: #a39082;">&copy; 2026 Palani Murugan Function Hall</small>
+    </div>
+  </footer>
+
+  <script src="/js/app.js"></script>
+  <script>
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const fullName = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const mobile = document.getElementById('reg-mobile').value.trim();
+      const password = document.getElementById('reg-password').value;
+      const confirmPassword = document.getElementById('reg-confirm').value;
+      const submitBtn = document.getElementById('btn-reg-submit');
+
+      if (password !== confirmPassword) {
+        document.getElementById('register-alert').innerHTML = `
+          <div class="alert alert-error">Passwords do not match. Please re-enter.</div>
+        `;
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = 'Registering...';
+
+      try {
+        const res = await App.apiFetch('/api/auth/register', {
+          method: 'POST',
+          body: JSON.stringify({ fullName, email, mobile, password, confirmPassword })
+        });
+
+        if (res.ok && res.data.success) {
+          App.setAuth(res.data.token, res.data.user);
+          App.toast('Registration successful! Welcome to Palani Murugan Hall.', 'success');
+
+          // Check if there was pending booking data in session
+          const hasPending = sessionStorage.getItem('pending_booking');
+          setTimeout(() => {
+            window.location.href = hasPending ? '/booking.html' : '/customer-dashboard.html';
+          }, 800);
+        } else {
+          document.getElementById('register-alert').innerHTML = `
+            <div class="alert alert-error">${res.data.message || 'Registration failed.'}</div>
+          `;
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = '<span>Complete Registration</span><span class="btn-ta">பதிவு செய்க</span>';
+        }
+      } catch (err) {
+        App.toast('Network error. Please try again.', 'error');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>Complete Registration</span><span class="btn-ta">பதிவு செய்க</span>';
+      }
+    });
+  </script>
+</body>
+</html>

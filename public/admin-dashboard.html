@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Portal | Palani Murugan Function Hall</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="container">
+      <div>🛡️ Palani Murugan Function Hall - Master Administrator Control Console</div>
+      <div>Security Audited</div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand-wrapper">
+        <div class="brand-logo-emblem" style="background:linear-gradient(135deg, #1e293b, var(--primary-maroon));">ADM</div>
+        <div class="brand-title">
+          Palani Murugan
+          <small>நிர்வாகி கட்டுப்பாட்டு அறை</small>
+        </div>
+      </a>
+      <div class="nav-actions" id="nav-auth-actions"></div>
+    </div>
+  </nav>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+      <div class="sidebar-user">
+        <h4 id="admin-name" style="color:var(--primary-maroon);">Admin</h4>
+        <small id="admin-email" style="color:var(--text-muted); word-break:break-all;">Loading...</small>
+        <div style="margin-top:6px;"><span class="badge" style="background:#e0e7ff; color:#3730a3;">System Administrator</span></div>
+      </div>
+
+      <ul class="sidebar-nav">
+        <li><a href="#overview" class="sidebar-link active" onclick="switchAdminTab('overview')">📊 System Overview</a></li>
+        <li><a href="#users" class="sidebar-link" onclick="switchAdminTab('users')">👥 User & Role Manager</a></li>
+        <li><a href="#bookings" class="sidebar-link" onclick="switchAdminTab('bookings')">📅 All Bookings</a></li>
+        <li><a href="#payments" class="sidebar-link" onclick="switchAdminTab('payments')">💳 All Transactions</a></li>
+        <li><a href="#logs" class="sidebar-link" onclick="switchAdminTab('logs')">📜 Audit Trail</a></li>
+        <li><a href="/owner-dashboard.html" class="sidebar-link" style="color:var(--accent-gold-dark);">🏛️ Switch to Owner Console</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+      <!-- 1. Overview -->
+      <section id="sec-admin-overview">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h2 style="font-size:1.8rem; color:var(--primary-maroon);">System Overview Metrics</h2>
+            <span class="tamil-sub">கணினி மேலோட்டம்</span>
+          </div>
+          <a href="/api/owner/reports/csv" class="btn btn-primary btn-sm" download>
+            <span>📥 Export Global Bookings CSV</span>
+          </a>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Registered Users</div>
+            <div class="stat-value" id="adm-total-users">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Bookings</div>
+            <div class="stat-value" id="adm-total-bookings">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Confirmed Bookings</div>
+            <div class="stat-value" id="adm-confirmed-bookings" style="color:var(--status-available);">0</div>
+          </div>
+          <div class="stat-card" style="border:2px solid var(--status-available);">
+            <div class="stat-label">Verified Revenue</div>
+            <div class="stat-value" id="adm-revenue" style="color:var(--status-available);">₹0</div>
+          </div>
+        </div>
+
+        <h3 style="color:var(--primary-maroon); margin: 30px 0 16px;">Recent System Audit Log Entries</h3>
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>User / Actor</th>
+                <th>Action</th>
+                <th>Entity</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="adm-recent-logs-body">
+              <tr><td colspan="5" style="text-align:center;">Loading recent logs...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 2. Users Manager -->
+      <section id="sec-admin-users" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <h2 style="font-size:1.8rem; color:var(--primary-maroon);">User Accounts & Roles</h2>
+          <div style="display:flex; gap:10px;">
+            <input type="text" class="form-input" id="adm-search-users" placeholder="Search user..." style="width:220px;" oninput="loadAdminUsers()">
+            <select class="form-select" id="adm-filter-role" style="width:140px;" onchange="loadAdminUsers()">
+              <option value="">All Roles</option>
+              <option value="customer">Customer</option>
+              <option value="owner">Owner</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Joined</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adm-users-table-body">
+              <tr><td colspan="8" style="text-align:center;">Loading users...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 3. Bookings -->
+      <section id="sec-admin-bookings" style="display:none;">
+        <h2 style="font-size:1.8rem; color:var(--primary-maroon); margin-bottom:20px;">All Function Hall Bookings</h2>
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Booking Ref</th>
+                <th>Customer</th>
+                <th>Mobile</th>
+                <th>Event Date & Days</th>
+                <th>Total Rent</th>
+                <th>Paid</th>
+                <th>Balance</th>
+                <th>Booking Status</th>
+                <th>Payment Status</th>
+              </tr>
+            </thead>
+            <tbody id="adm-bookings-table-body">
+              <tr><td colspan="9" style="text-align:center;">Loading bookings...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 4. Payments -->
+      <section id="sec-admin-payments" style="display:none;">
+        <h2 style="font-size:1.8rem; color:var(--primary-maroon); margin-bottom:20px;">All Transaction Records</h2>
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Payment Ref</th>
+                <th>Booking Ref</th>
+                <th>Customer</th>
+                <th>Method</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Gateway / UTR Reference</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody id="adm-payments-table-body">
+              <tr><td colspan="8" style="text-align:center;">Loading transactions...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 5. Audit Logs -->
+      <section id="sec-admin-logs" style="display:none;">
+        <h2 style="font-size:1.8rem; color:var(--primary-maroon); margin-bottom:20px;">Complete Activity & Audit Trail</h2>
+        <div class="data-table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>User / Actor</th>
+                <th>Action</th>
+                <th>Entity</th>
+                <th>Details</th>
+              </tr>
+            </thead>
+            <tbody id="adm-full-logs-body">
+              <tr><td colspan="5" style="text-align:center;">Loading full logs...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script>
+    function switchAdminTab(tabName) {
+      document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+      document.querySelector(`a[href="#${tabName}"]`)?.classList.add('active');
+
+      const tabs = ['overview', 'users', 'bookings', 'payments', 'logs'];
+      tabs.forEach(t => {
+        const el = document.getElementById(`sec-admin-${t}`);
+        if (el) el.style.display = t === tabName ? 'block' : 'none';
+      });
+
+      if (tabName === 'users') loadAdminUsers();
+      if (tabName === 'bookings') loadAdminBookings();
+      if (tabName === 'payments') loadAdminPayments();
+      if (tabName === 'logs') loadAdminLogs();
+    }
+
+    async function loadAdminOverview() {
+      const user = App.getUser();
+      if (!user || user.role !== 'admin') {
+        App.toast('Administrator access required.', 'error');
+        window.location.href = '/login.html';
+        return;
+      }
+
+      document.getElementById('admin-name').textContent = user.fullName || 'Administrator';
+      document.getElementById('admin-email').textContent = user.email || '';
+
+      try {
+        const res = await App.apiFetch('/api/admin/dashboard');
+        if (res.ok && res.data.success) {
+          const stats = res.data.stats;
+          document.getElementById('adm-total-users').textContent = stats.users.total;
+          document.getElementById('adm-total-bookings').textContent = stats.bookings.total;
+          document.getElementById('adm-confirmed-bookings').textContent = stats.bookings.confirmed;
+          document.getElementById('adm-revenue').textContent = App.formatINR(stats.financials.verifiedRevenueRupees);
+
+          const tbody = document.getElementById('adm-recent-logs-body');
+          if (res.data.recentLogs) {
+            tbody.innerHTML = res.data.recentLogs.map(l => `
+              <tr>
+                <td><small>${App.formatDate(l.created_at)}</small></td>
+                <td>${l.user_name || 'System'} (${l.user_role || 'system'})</td>
+                <td><code>${l.action}</code></td>
+                <td>${l.entity_type || '-'} #${l.entity_id || ''}</td>
+                <td><small>${l.details || ''}</small></td>
+              </tr>
+            `).join('');
+          }
+        }
+      } catch (e) {
+        App.toast('Failed to load admin overview.', 'error');
+      }
+    }
+
+    async function loadAdminUsers() {
+      const search = document.getElementById('adm-search-users').value.trim();
+      const role = document.getElementById('adm-filter-role').value;
+
+      try {
+        const res = await App.apiFetch(`/api/admin/users?search=${encodeURIComponent(search)}&role=${encodeURIComponent(role)}`);
+        const tbody = document.getElementById('adm-users-table-body');
+        if (res.ok && res.data.users) {
+          tbody.innerHTML = res.data.users.map(u => `
+            <tr>
+              <td>${u.id}</td>
+              <td><strong>${u.full_name}</strong></td>
+              <td>${u.email}</td>
+              <td>${u.mobile}</td>
+              <td>
+                <select class="form-select" style="padding:4px 8px; font-size:0.85rem; width:110px;" onchange="changeRole(${u.id}, this.value)">
+                  <option value="customer" ${u.role === 'customer' ? 'selected' : ''}>Customer</option>
+                  <option value="owner" ${u.role === 'owner' ? 'selected' : ''}>Owner</option>
+                  <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                </select>
+              </td>
+              <td>
+                <span class="badge badge-${u.is_active ? 'success' : 'failed'}">
+                  ${u.is_active ? 'ACTIVE' : 'DEACTIVATED'}
+                </span>
+              </td>
+              <td><small>${App.formatDate(u.created_at)}</small></td>
+              <td>
+                <button class="btn btn-sm ${u.is_active ? 'btn-outline' : 'btn-primary'}" onclick="toggleUserActive(${u.id}, ${!u.is_active})">
+                  ${u.is_active ? 'Deactivate' : 'Activate'}
+                </button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {}
+    }
+
+    async function changeRole(userId, newRole) {
+      if (!confirm(`Change user role to ${newRole}?`)) return;
+      try {
+        const res = await App.apiFetch(`/api/admin/users/${userId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ role: newRole })
+        });
+        if (res.ok && res.data.success) {
+          App.toast('User role updated.', 'success');
+          loadAdminUsers();
+        } else {
+          App.toast(res.data.message || 'Failed to update role.', 'error');
+        }
+      } catch (e) {
+        App.toast('Error updating role.', 'error');
+      }
+    }
+
+    async function toggleUserActive(userId, isActive) {
+      try {
+        const res = await App.apiFetch(`/api/admin/users/${userId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ isActive })
+        });
+        if (res.ok && res.data.success) {
+          App.toast(`User ${isActive ? 'activated' : 'deactivated'}.`, 'success');
+          loadAdminUsers();
+        } else {
+          App.toast(res.data.message || 'Action failed.', 'error');
+        }
+      } catch (e) {
+        App.toast('Error updating user status.', 'error');
+      }
+    }
+
+    async function loadAdminBookings() {
+      try {
+        const res = await App.apiFetch('/api/admin/bookings');
+        const tbody = document.getElementById('adm-bookings-table-body');
+        if (res.ok && res.data.bookings) {
+          tbody.innerHTML = res.data.bookings.map(b => `
+            <tr>
+              <td><strong>#${b.booking_ref}</strong></td>
+              <td>${b.customer_name}</td>
+              <td>${b.customer_mobile}</td>
+              <td>${App.formatDate(b.event_date)} (${b.num_days}d)</td>
+              <td>${App.formatINR(b.total_amount_paise / 100)}</td>
+              <td><strong style="color:var(--status-available);">${App.formatINR(b.total_paid_paise / 100)}</strong></td>
+              <td><strong style="color:${b.remaining_paise > 0 ? 'var(--status-booked)' : 'var(--status-available)'};">${App.formatINR(b.remaining_paise / 100)}</strong></td>
+              <td><span class="badge badge-${b.booking_status}">${b.booking_status}</span></td>
+              <td><span class="badge badge-${b.payment_status}">${b.payment_status}</span></td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {}
+    }
+
+    async function loadAdminPayments() {
+      try {
+        const res = await App.apiFetch('/api/admin/payments');
+        const tbody = document.getElementById('adm-payments-table-body');
+        if (res.ok && res.data.payments) {
+          tbody.innerHTML = res.data.payments.map(p => `
+            <tr>
+              <td><code>${p.payment_ref}</code></td>
+              <td>#${p.booking_ref}</td>
+              <td>${p.customer_name}</td>
+              <td>${p.payment_method === 'manual_upi' ? 'Manual UPI' : 'Razorpay'}</td>
+              <td><strong>${App.formatINR(p.amount_paise / 100)}</strong></td>
+              <td><span class="badge badge-${p.payment_status}">${p.payment_status}</span></td>
+              <td><small>${p.razorpay_payment_id || p.manual_upi_ref || '-'}</small></td>
+              <td>${App.formatDate(p.created_at)}</td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {}
+    }
+
+    async function loadAdminLogs() {
+      try {
+        const res = await App.apiFetch('/api/admin/logs');
+        const tbody = document.getElementById('adm-full-logs-body');
+        if (res.ok && res.data.logs) {
+          tbody.innerHTML = res.data.logs.map(l => `
+            <tr>
+              <td><small>${App.formatDate(l.created_at)}</small></td>
+              <td>${l.user_name || 'System'} (${l.user_role || 'system'})</td>
+              <td><code>${l.action}</code></td>
+              <td>${l.entity_type || '-'} #${l.entity_id || ''}</td>
+              <td><small>${l.details || ''}</small></td>
+            </tr>
+          `).join('');
+        }
+      } catch (e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadAdminOverview();
+    });
+  </script>
+</body>
+</html>
