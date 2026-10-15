@@ -73,7 +73,7 @@ app.use(notFoundHandler);
 if (process.env.NODE_ENV !== 'test') {
   app.listen(PORT, () => {
     console.log(`\n======================================================`);
-    console.log(`  Palani Murugan Function Hall Booking Server Started`);
+    console.log(`  Sri Palani Murugan Function Hall Booking Server Started`);
     console.log(`  URL: http://localhost:${PORT}`);
     console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`  UPI ID: ${process.env.UPI_ID || 'rajm19407@okaxis'}`);

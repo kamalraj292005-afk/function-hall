@@ -15,6 +15,9 @@ const authLimiter = rateLimit({
 
 router.post('/register', authLimiter, authController.register);
 router.post('/login', authLimiter, authController.login);
+router.post('/forgot-username', authLimiter, authController.forgotUsername);
+router.post('/forgot-password', authLimiter, authController.forgotPassword);
+router.post('/reset-password', authLimiter, authController.resetPassword);
 router.post('/logout', authenticate, authController.logout);
 router.get('/me', authenticate, authController.getMe);
 router.patch('/profile', authenticate, authController.updateProfile);
@@ -23,3 +26,4 @@ router.patch('/notifications/:id/read', authenticate, authController.markNotific
 router.patch('/notifications/read-all', authenticate, authController.markAllNotificationsRead);
 
 module.exports = router;
+

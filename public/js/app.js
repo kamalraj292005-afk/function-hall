@@ -1,5 +1,5 @@
 /**
- * Palani Murugan Function Hall - Core Client Library
+ * Sri Palani Murugan Function Hall - Core Client Library
  */
 
 const App = {

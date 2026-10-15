@@ -152,6 +152,19 @@ function initializeDatabase() {
       )
     `);
 
+    // Password reset tokens table
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS password_resets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        token_hash TEXT UNIQUE NOT NULL,
+        expires_at TEXT NOT NULL,
+        used_at TEXT DEFAULT NULL,
+        created_at TEXT NOT NULL DEFAULT (datetime('now')),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
+
     // Indexes
     db.exec(`CREATE INDEX IF NOT EXISTS idx_bookings_user_id ON bookings(user_id)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_bookings_event_date ON bookings(event_date)`);
@@ -163,21 +176,22 @@ function initializeDatabase() {
     db.exec(`CREATE INDEX IF NOT EXISTS idx_hall_images_hall_id ON hall_images(hall_id)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id)`);
     db.exec(`CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON activity_logs(user_id)`);
+    db.exec(`CREATE INDEX IF NOT EXISTS idx_password_resets_token ON password_resets(token_hash)`);
     db.exec(`CREATE UNIQUE INDEX IF NOT EXISTS idx_bookings_hall_date ON bookings(hall_id, event_date) WHERE booking_status != 'cancelled'`);
 
-    // Seed default hall if not exists
+    // Seed or update default hall name and address
     const hallCount = db.prepare('SELECT COUNT(*) as count FROM halls').get();
     if (hallCount.count === 0) {
       db.prepare(`
         INSERT INTO halls (name, address, contact_number, daily_rent_paise, advance_amount_paise, description, facilities)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `).run(
-        'Palani Murugan Function Hall',
-        'Vallavari, Aranthangi to Peravurani Road, near Ayanar Kovil Temple, Tamil Nadu, India',
+        'Sri Palani Murugan Function Hall',
+        'Main Road, Aranthangi to Peravurani Road, Vallavari, Near Ayyanar Kovil Temple, Tamil Nadu, India.',
         '9655609405',
         1750000,
         500000,
-        'A premium function hall ideal for weddings, receptions, engagements, and all auspicious occasions. Located conveniently near Ayanar Kovil Temple.',
+        'A premium function hall ideal for weddings, receptions, engagements, and all auspicious occasions. Located conveniently on Main Road, Aranthangi to Peravurani Road, Vallavari, near Ayyanar Kovil Temple.',
         JSON.stringify([
           'Spacious Hall',
           'Modern Kitchen',
@@ -192,6 +206,14 @@ function initializeDatabase() {
         ])
       );
       console.log('Default hall seeded.');
+    } else {
+      // Update existing hall record if needed to match new official name and address
+      db.prepare(`
+        UPDATE halls SET
+          name = 'Sri Palani Murugan Function Hall',
+          address = 'Main Road, Aranthangi to Peravurani Road, Vallavari, Near Ayyanar Kovil Temple, Tamil Nadu, India.'
+        WHERE id = 1
+      `).run();
     }
 
     // Seed default hall images from existing photos

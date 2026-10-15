@@ -179,6 +179,94 @@ describe('Palani Murugan Function Hall Booking App Test Suite', () => {
         .set('Authorization', `Bearer ${ownerToken}`);
       expect(resOwner.status).toBe(403);
     });
+
+    it('should handle forgot username gracefully for all roles', async () => {
+      // Customer
+      const resCust = await request(app)
+        .post('/api/auth/forgot-username')
+        .send({ email: 'customer@test.com' });
+      // When SMTP not configured, returns 503 with helpful support number or 200 when email mocked/configured
+      expect([200, 503]).toContain(resCust.status);
+
+      // Non-existent email should return 200 without user enumeration
+      const resNone = await request(app)
+        .post('/api/auth/forgot-username')
+        .send({ email: 'nonexistent@test.com' });
+      expect(resNone.status).toBe(200);
+      expect(resNone.body.success).toBe(true);
+
+      // Invalid email
+      const resInvalid = await request(app)
+        .post('/api/auth/forgot-username')
+        .send({ email: 'notanemail' });
+      expect(resInvalid.status).toBe(400);
+    });
+
+    it('should handle password reset lifecycle: token generation, validation, and update', async () => {
+      const crypto = require('crypto');
+      const testDb = getDb();
+      const testUser = testDb.prepare('SELECT * FROM users WHERE email = ?').get('customer@test.com');
+      expect(testUser).toBeDefined();
+
+      // Create a test reset token directly in DB
+      const rawToken = 'test-reset-token-' + Date.now();
+      const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+
+      testDb.prepare(`
+        INSERT INTO password_resets (user_id, token_hash, expires_at)
+        VALUES (?, ?, ?)
+      `).run(testUser.id, tokenHash, expiresAt);
+
+      // Attempt reset with mismatched passwords
+      const resMismatch = await request(app)
+        .post('/api/auth/reset-password')
+        .send({
+          token: rawToken,
+          email: 'customer@test.com',
+          password: 'NewPassword123',
+          confirmPassword: 'DifferentPassword'
+        });
+      expect(resMismatch.status).toBe(400);
+
+      // Successful password reset
+      const resSuccess = await request(app)
+        .post('/api/auth/reset-password')
+        .send({
+          token: rawToken,
+          email: 'customer@test.com',
+          password: 'NewPassword123',
+          confirmPassword: 'NewPassword123'
+        });
+      expect(resSuccess.status).toBe(200);
+      expect(resSuccess.body.success).toBe(true);
+
+      // Token cannot be reused
+      const resReuse = await request(app)
+        .post('/api/auth/reset-password')
+        .send({
+          token: rawToken,
+          email: 'customer@test.com',
+          password: 'AnotherPassword123',
+          confirmPassword: 'AnotherPassword123'
+        });
+      expect(resReuse.status).toBe(400);
+
+      // Login with new password
+      const resNewLogin = await request(app)
+        .post('/api/auth/login')
+        .send({
+          email: 'customer@test.com',
+          password: 'NewPassword123'
+        });
+      expect(resNewLogin.status).toBe(200);
+      expect(resNewLogin.body.success).toBe(true);
+
+      // Restore password for downstream tests
+      const bcrypt = require('bcryptjs');
+      const restoredHash = await bcrypt.hash('SecurePassword123', 10);
+      testDb.prepare('UPDATE users SET password_hash = ? WHERE id = ?').run(restoredHash, testUser.id);
+    });
   });
 
   // 2. Hall Information & Pricing Verification

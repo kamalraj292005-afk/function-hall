@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | Palani Murugan Function Hall</title>
+  <title>Login | Sri Palani Murugan Function Hall</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,8 +16,8 @@
       <a href="/" class="brand-wrapper">
         <div class="brand-logo-emblem">PM</div>
         <div class="brand-title">
-          Palani Murugan
-          <small>பழனி முருகன் திருமண மஹால்</small>
+          Sri Palani Murugan
+          <small>ஸ்ரீ பழனி முருகன் திருமண மண்டபம்</small>
         </div>
       </a>
       <a href="/" class="btn btn-outline btn-sm">Home (முகப்பு)</a>
@@ -48,6 +48,15 @@
           <span>Sign In</span>
           <span class="btn-ta">உள்நுழைய</span>
         </button>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 0.88rem; flex-wrap: wrap; gap: 8px;">
+          <a href="#forgot-username" onclick="openForgotModal('username')" style="color: var(--primary-maroon); font-weight: 600; text-decoration: underline;">
+            Forgot Username?
+          </a>
+          <a href="#forgot-password" onclick="openForgotModal('password')" style="color: var(--primary-maroon); font-weight: 600; text-decoration: underline;">
+            Forgot Password?
+          </a>
+        </div>
       </form>
 
       <div style="margin-top: 24px; text-align: center;">
@@ -73,9 +82,35 @@
     </div>
   </div>
 
+  <!-- Recovery Modal -->
+  <div id="recovery-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:10000; align-items:center; justify-content:center; padding:16px;">
+    <div class="booking-form-card" style="max-width:440px; width:100%; position:relative; background:white; border-radius:12px; box-shadow:0 12px 30px rgba(0,0,0,0.3); border:2px solid var(--accent-gold);">
+      <button type="button" onclick="closeForgotModal()" style="position:absolute; top:14px; right:16px; background:none; border:none; font-size:1.6rem; cursor:pointer; color:var(--text-muted);">&times;</button>
+      
+      <div style="text-align:center; margin-bottom:18px;">
+        <h3 id="modal-title" style="color:var(--primary-maroon); font-size:1.4rem;">Forgot Password</h3>
+        <p id="modal-desc" style="color:var(--text-muted); font-size:0.9rem; margin-top:6px;">Enter your registered email address to receive recovery instructions.</p>
+      </div>
+
+      <div id="modal-alert"></div>
+
+      <form id="recovery-form">
+        <input type="hidden" id="recovery-mode" value="password">
+        <div class="form-group">
+          <label class="form-label" for="recovery-email">Registered Email Address <span class="required">*</span></label>
+          <input type="email" class="form-input" id="recovery-email" required placeholder="Enter your registered email">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;" id="btn-recovery-submit">
+          <span id="recovery-btn-text">Send Password Reset Link</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
   <footer class="footer" style="padding: 20px 0; text-align: center;">
     <div class="container">
-      <small style="color: #a39082;">&copy; 2026 Palani Murugan Function Hall</small>
+      <small style="color: #a39082;">&copy; 2026 Sri Palani Murugan Function Hall</small>
     </div>
   </footer>
 
@@ -86,6 +121,96 @@
       document.getElementById('login-password').value = password;
       App.toast(`Filled credentials for ${email}`, 'info');
     }
+
+    function openForgotModal(type) {
+      const modal = document.getElementById('recovery-modal');
+      const title = document.getElementById('modal-title');
+      const desc = document.getElementById('modal-desc');
+      const btnText = document.getElementById('recovery-btn-text');
+      const mode = document.getElementById('recovery-mode');
+      const alert = document.getElementById('modal-alert');
+      
+      alert.innerHTML = '';
+      mode.value = type;
+
+      if (type === 'username') {
+        title.textContent = 'Forgot Username';
+        desc.textContent = 'Enter your registered email address to receive your account login username and details.';
+        btnText.textContent = 'Send Username / Account Info';
+      } else {
+        title.textContent = 'Forgot Password';
+        desc.textContent = 'Enter your registered email address to receive a secure password reset link.';
+        btnText.textContent = 'Send Password Reset Link';
+      }
+
+      modal.style.display = 'flex';
+      document.getElementById('recovery-email').focus();
+    }
+
+    function closeForgotModal() {
+      document.getElementById('recovery-modal').style.display = 'none';
+      document.getElementById('recovery-email').value = '';
+      document.getElementById('modal-alert').innerHTML = '';
+    }
+
+    // Close modal on click outside
+    window.addEventListener('click', (e) => {
+      const modal = document.getElementById('recovery-modal');
+      if (e.target === modal) {
+        closeForgotModal();
+      }
+    });
+
+    document.getElementById('recovery-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('recovery-email').value.trim();
+      const mode = document.getElementById('recovery-mode').value;
+      const submitBtn = document.getElementById('btn-recovery-submit');
+      const alertBox = document.getElementById('modal-alert');
+
+      if (!email) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Processing request...';
+      alertBox.innerHTML = '';
+
+      const endpoint = mode === 'username' ? '/api/auth/forgot-username' : '/api/auth/forgot-password';
+
+      try {
+        const res = await App.apiFetch(endpoint, {
+          method: 'POST',
+          body: JSON.stringify({ email })
+        });
+
+        if (res.ok && res.data.success) {
+          alertBox.innerHTML = `
+            <div class="alert alert-success" style="background:#dcfce7; color:#15803d; padding:12px; border-radius:6px; margin-bottom:14px; font-size:0.9rem;">
+              ✅ ${res.data.message}
+            </div>
+          `;
+          submitBtn.disabled = false;
+          submitBtn.textContent = mode === 'username' ? 'Send Username / Account Info' : 'Send Password Reset Link';
+          document.getElementById('recovery-email').value = '';
+          App.toast(res.data.message, 'success');
+        } else {
+          alertBox.innerHTML = `
+            <div class="alert alert-error" style="background:#fee2e2; color:#991b1b; padding:12px; border-radius:6px; margin-bottom:14px; font-size:0.9rem;">
+              ⚠️ ${res.data.message || 'Unable to process recovery.'}
+            </div>
+          `;
+          submitBtn.disabled = false;
+          submitBtn.textContent = mode === 'username' ? 'Send Username / Account Info' : 'Send Password Reset Link';
+        }
+      } catch (err) {
+        alertBox.innerHTML = `
+          <div class="alert alert-error" style="background:#fee2e2; color:#991b1b; padding:12px; border-radius:6px; margin-bottom:14px; font-size:0.9rem;">
+            ⚠️ Network error. Please try again later.
+          </div>
+        `;
+        submitBtn.disabled = false;
+        submitBtn.textContent = mode === 'username' ? 'Send Username / Account Info' : 'Send Password Reset Link';
+      }
+    });
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
       e.preventDefault();
