@@ -217,6 +217,39 @@ function initializeDatabase() {
       }
     }
 
+    // Seed default admin and owner accounts if they do not exist
+    const adminEmail = (process.env.INITIAL_ADMIN_EMAIL || 'admin@palanimurugan.com').toLowerCase();
+    const ownerEmail = (process.env.INITIAL_OWNER_EMAIL || 'owner@palanimurugan.com').toLowerCase();
+    const adminPassword = process.env.INITIAL_ADMIN_PASSWORD || 'Admin@Palani2026';
+    const ownerPassword = process.env.INITIAL_OWNER_PASSWORD || 'Owner@Palani2026';
+    const adminMobile = process.env.INITIAL_ADMIN_MOBILE || '9655609405';
+    const ownerMobile = process.env.INITIAL_OWNER_MOBILE || '9655609405';
+    const adminName = process.env.INITIAL_ADMIN_NAME || 'Palani Murugan Admin';
+    const ownerName = process.env.INITIAL_OWNER_NAME || 'Palani Murugan Hall Owner';
+
+    const bcrypt = require('bcryptjs');
+    const { v4: uuidv4 } = require('uuid');
+
+    const existingAdmin = db.prepare('SELECT id FROM users WHERE email = ?').get(adminEmail);
+    if (!existingAdmin) {
+      const adminHash = bcrypt.hashSync(adminPassword, 10);
+      db.prepare(`
+        INSERT INTO users (uuid, full_name, email, mobile, password_hash, role, is_active)
+        VALUES (?, ?, ?, ?, ?, 'admin', 1)
+      `).run(uuidv4(), adminName, adminEmail, adminMobile, adminHash);
+      console.log(`Default administrator seeded: ${adminEmail}`);
+    }
+
+    const existingOwner = db.prepare('SELECT id FROM users WHERE email = ?').get(ownerEmail);
+    if (!existingOwner) {
+      const ownerHash = bcrypt.hashSync(ownerPassword, 10);
+      db.prepare(`
+        INSERT INTO users (uuid, full_name, email, mobile, password_hash, role, is_active)
+        VALUES (?, ?, ?, ?, ?, 'owner', 1)
+      `).run(uuidv4(), ownerName, ownerEmail, ownerMobile, ownerHash);
+      console.log(`Default owner seeded: ${ownerEmail}`);
+    }
+
   })();
 
   console.log('Database initialized successfully.');

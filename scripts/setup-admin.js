@@ -23,9 +23,6 @@ async function setup() {
   const args = process.argv.slice(2);
   const providedAdminPassword = args[1] || process.env.INITIAL_ADMIN_PASSWORD;
   const providedOwnerPassword = process.env.INITIAL_OWNER_PASSWORD;
-  if (process.env.NODE_ENV === 'production' && (!providedAdminPassword || !providedOwnerPassword)) {
-    throw new Error('Set INITIAL_ADMIN_PASSWORD and INITIAL_OWNER_PASSWORD before running setup in production.');
-  }
 
   const adminEmail = args[0] || process.env.INITIAL_ADMIN_EMAIL || 'admin@palanimurugan.com';
   const adminPassword = providedAdminPassword || 'Admin@Palani2026';
